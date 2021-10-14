@@ -3,14 +3,14 @@ layout: default
 title:  Team
 ---
 
-# {{ page.title }}
+# List of Team member:
 
 
-## USER 1
-***UCI Net ID***: ucinetid1
+## Dennis Tang
+***UCI Net ID***: dvtang1
 
-## USER 2
-***UCI Net ID***: ucinetid2
+## Duncan Shepherd
+***UCI Net ID***: dcshephe
 
-## USER 3
-***UCI Net ID***: ucinetid3
+## Jonathan Cai
+***UCI Net ID***: caij8
