@@ -24,3 +24,6 @@ Disparate generations can also be pitted against each other to gauge progress. F
 ## Qualitative Evaluation
 In addition to evaluating both hiders and seekers by the amount of time that has passed, we also want to evalulate the agents on their apparent intelligence. There are many tools available in the Minecraft world, and making intelligent use of blocks, space, and obstacles corresponds to the improvement in the agents' abilities. Although analyzing the intelligence of the agents through their actions could be subjective, refinement in decision-making is easy to discern when beginning with random, unlearned behavior. After basic locomotion competencies are achieved, qualitative evaluation should reveal a problem-solving arms-race between the hiders and seekers.
 
+## Appointment with Instructor
+The appointment date is set for October 26 at 3:30pm.
+
