@@ -43,7 +43,7 @@ def gen_mission_xml(arena_size: int):
 
     Args:
         arena_size (int):
-            Specify the size of the square play area for the agents. Resulting play area will be of size (arena_size + 1 * arena_size + 1). Does not include the bound walls of the arena.
+            Specify the size of the square play area for the agents. Resulting play area will be of size (arena_size + 1 * arena_size + 1). Does not include the walls of the arena.
 
     Returns:
         A formated Malmo mission XML with the requested settings.
