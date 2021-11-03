@@ -43,7 +43,7 @@ def gen_mission_xml(arena_size: int):
 
     Args:
         arena_size (int):
-            Specify the size of the square play area for the agents. Resulting play area will be of size (arena_size + 1 * arena_size + 1). Does not include the walls of the arena.
+            Specify the size of the square play area for the agents. Resulting play area will be of size (arena_size * arena_size). Does not include the walls of the arena.
 
     Returns:
         str: A formated Malmo mission XML string with the requested settings.
@@ -80,12 +80,22 @@ def gen_mission_xml(arena_size: int):
                     <DrawCuboid x1='-{(arena_size//2) + 1}' x2='{(arena_size//2) + 1}' y1='2' y2='3' z1='-{(arena_size//2) + 1}' z2='{(arena_size//2) + 1}' type='air'/>"""
     # generate floor
     mission_string += f"""
-                    <DrawCuboid x1='-{arena_size//2}' x2='{arena_size//2}' y1='1' y2='1' z1='-{arena_size//2}' z2='{arena_size//2}' type='quartz_block'/>"""
+    if arena_size % 2 == 0:
+        mission_string += f"""
+                        <DrawCuboid x1='-{arena_size - 4}' x2='{arena_size - 3}' y1='1' y2='1' z1='-{arena_size - 4}' z2='{arena_size - 3}' type='iron_block'/>"""
+    else:
+        mission_string += f"""
+                        <DrawCuboid x1='-{arena_size - 3}' x2='{arena_size - 3}' y1='1' y2='1' z1='-{arena_size - 3}' z2='{arena_size - 3}' type='iron_block'/>"""
     # generate walls
-    mission_string += f"""
-                    <DrawCuboid x1='-{arena_size//2 + 1}' x2='{arena_size//2 + 1}' y1='2' y2='3' z1='-{arena_size//2 + 1}' z2='{arena_size//2 + 1}' type='stonebrick'/>
-                    <DrawCuboid x1='-{arena_size//2}' x2='{arena_size//2}' y1='2' y2='3' z1='-{arena_size//2}' z2='{arena_size//2}' type='air'/>
-                </DrawingDecorator>"""
+    if not is_open_arena:
+        if arena_size % 2 == 0:
+            mission_string += f"""
+                        <DrawCuboid x1='-{arena_size - 3}' x2='{arena_size - 3}' y1='2' y2='3' z1='-{arena_size - 3}' z2='{arena_size - 3}' type='stonebrick'/>
+                        <DrawCuboid x1='-{arena_size - 4}' x2='{arena_size - 4}' y1='2' y2='3' z1='-{arena_size - 4}' z2='{arena_size - 4}' type='air'/>"""
+        else:
+            mission_string += f"""
+                        <DrawCuboid x1='-{arena_size - 2}' x2='{arena_size - 2}' y1='2' y2='3' z1='-{arena_size - 2}' z2='{arena_size - 2}' type='stonebrick'/>
+                        <DrawCuboid x1='-{arena_size - 3}' x2='{arena_size - 3}' y1='2' y2='3' z1='-{arena_size - 3}' z2='{arena_size - 3}' type='air'/>"""
 
     # add quit condition
     mission_string += f"""
