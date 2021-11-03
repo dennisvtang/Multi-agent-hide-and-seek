@@ -37,13 +37,30 @@ else:
     print = functools.partial(print, flush=True)
 
 
-def gen_mission_xml(arena_size: int):
+def gen_mission_xml(
+    arena_size: int,
+    is_closed_arena: bool,
+    **kwargs,
+):
     """
     Generate Malmo mission XML string of an hide and seek arena with the requested settings.
 
     Args:
         arena_size (int):
+        **kwargs:
+            Arbitrary keyword arguments.
+
+        Keyword Arguments:
+            num_rooms (int):
+                Specify the number of rooms to divide the arena into. The doors in between rooms will be randomly placed. If is_open_arena=True, the walls creating the rooms will still generate but will act as obstacles instead.
+            gen_blocks (bool):
+                Specify if the mission should randomly generate blocks for the agents to pick up and place.
+            num_blocks (int):
+                Specify the number of blocks that should be generated.
             Specify the size of the square play area for the agents. Resulting play area will be of size (arena_size * arena_size). Does not include the walls of the arena.
+        is_closed_arena (bool):
+            Specify if the area will be closed by walls. A closed arena will result in rooms. An open arena will still generate dividers that would've created the rooms, but the outer wall isn't generated which
+            will act as obstacles instead.
 
     Returns:
         str: A formated Malmo mission XML string with the requested settings.
@@ -83,7 +100,7 @@ def gen_mission_xml(arena_size: int):
     mission_string += f"""
                     <DrawCuboid x1='0' x2='{arena_size - 1}' y1='1' y2='1' z1='0' z2='{arena_size - 1}' type='iron_block'/>"""
     # generate walls
-    if not is_open_arena:
+    if not is_closed_arena:
         mission_string += f"""
                         <DrawCuboid x1='-1' x2='{arena_size}' y1='2' y2='3' z1='-1' z2='{arena_size}' type='stonebrick'/>
                         <DrawCuboid x1='0' x2='{arena_size-1}' y1='2' y2='3' z1='0' z2='{arena_size-1}' type='air'/>"""
@@ -126,7 +143,8 @@ if agent_host.receivedArgument("help"):
 
 # setup Malmo mission
 mission_xml = gen_mission_xml(
-    arena_size=10,
+    arena_size=3,
+    is_closed_arena=True,
 )
 # print(mission_xml)
 my_mission = MalmoPython.MissionSpec(mission_xml, True)
