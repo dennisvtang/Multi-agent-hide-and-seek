@@ -116,7 +116,7 @@ def gen_mission_xml(
         <AgentSection mode="Spectator">
             <Name>TopDownView</Name>
             <AgentStart>
-                <Placement x="0" y="{10 + (arena_size//3)}" z="0" pitch="90"/>
+                <Placement x="{arena_size/2}" y="{10 + (arena_size//3)}" z="{arena_size/2}" pitch="90"/>
             </AgentStart>
             <AgentHandlers>
                 <ObservationFromFullStats/>
