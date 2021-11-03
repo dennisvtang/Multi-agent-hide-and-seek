@@ -36,35 +36,81 @@ else:
 
     print = functools.partial(print, flush=True)
 
-# More interesting generator string: "3;7,44*49,73,35:1,159:4,95:13,35:13,159:11,95:10,159:14,159:6,35:6,95:6;12;"
 
-missionXML = """<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-            <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            
-              <About>
-                <Summary>Hello world!</Summary>
-              </About>
-              
-              <ServerSection>
-                <ServerHandlers>
-                  <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;3;,biome_1"/>
-                  <ServerQuitFromTimeUp timeLimitMs="30000"/>
-                  <ServerQuitWhenAnyAgentFinishes/>
-                </ServerHandlers>
-              </ServerSection>
-              
-              <AgentSection mode="Survival">
-                <Name>MalmoTutorialBot</Name>
-                <AgentStart/>
-                <AgentHandlers>
-                  <ObservationFromFullStats/>
-                  <ContinuousMovementCommands turnSpeedDegs="180"/>
-                </AgentHandlers>
-              </AgentSection>
-            </Mission>"""
+def gen_mission_xml(arena_size: int):
+    """
+    Generate Malmo mission XML string of an hide and seek arena with the requested settings.
+
+    Args:
+        arena_size (int):
+            Specify the size of the square play area for the agents. Resulting play area will be of size (arena_size + 1 * arena_size + 1). Does not include the bound walls of the arena.
+
+    Returns:
+        A formated Malmo mission XML with the requested settings.
+    """
+
+    mission_string = f""
+
+    # add boiler plate stuff
+    mission_string += """
+    <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+    <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <About>
+            <Summary>Multi Agent Hide and Seek</Summary>
+        </About>"""
+
+    # add server settings
+    mission_string += f"""
+        <ServerSection>
+            <ServerInitialConditions>
+                <Time>
+                    <StartTime>12000</StartTime>
+                    <AllowPassageOfTime>false</AllowPassageOfTime>
+                </Time>
+                <Weather>clear</Weather>
+            </ServerInitialConditions>"""
+
+    # add map generation
+    mission_string += f"""
+            <ServerHandlers>
+                <FlatWorldGenerator generatorString="3;7,2;1;"/>
+                <DrawingDecorator>"""
+    # reset blocks at arena
+    mission_string += f"""
+                    <DrawCuboid x1='-{(arena_size//2) + 1}' x2='{(arena_size//2) + 1}' y1='2' y2='3' z1='-{(arena_size//2) + 1}' z2='{(arena_size//2) + 1}' type='air'/>"""
+    # generate floor
+    mission_string += f"""
+                    <DrawCuboid x1='-{arena_size//2}' x2='{arena_size//2}' y1='1' y2='2' z1='-{arena_size//2}' z2='{arena_size//2}' type='quartz_block'/>"""
+    # generate walls
+    mission_string += f"""
+                    <DrawCuboid x1='-{arena_size//2 + 1}' x2='{arena_size//2 + 1}' y1='2' y2='3' z1='-{arena_size//2 + 1}' z2='{arena_size//2 + 1}' type='stonebrick'/>
+                    <DrawCuboid x1='-{arena_size//2}' x2='{arena_size//2}' y1='2' y2='3' z1='-{arena_size//2}' z2='{arena_size//2}' type='air'/>
+                </DrawingDecorator>"""
+
+    # add quit condition
+    mission_string += f"""
+                <ServerQuitWhenAnyAgentFinishes/>
+            </ServerHandlers>
+        </ServerSection>"""
+
+    # setup agent as observer
+    mission_string += f"""
+        <AgentSection mode="Survival">
+            <Name>MalmoTutorialBot</Name>
+            <AgentStart>
+                <Placement x="0.5" y="20" z="0.5" pitch="90"/>
+            </AgentStart>
+            <AgentHandlers>
+                <ObservationFromFullStats/>
+                <ContinuousMovementCommands turnSpeedDegs="180"/>
+            </AgentHandlers>
+        </AgentSection>
+    </Mission>"""
+
+    return mission_string
+
 
 # Create default Malmo objects:
-
 agent_host = MalmoPython.AgentHost()
 try:
     agent_host.parse(sys.argv)
@@ -76,7 +122,13 @@ if agent_host.receivedArgument("help"):
     print(agent_host.getUsage())
     exit(0)
 
-my_mission = MalmoPython.MissionSpec(missionXML, True)
+
+# setup Malmo mission
+mission_xml = gen_mission_xml(
+    arena_size=10,
+)
+# print(mission_xml)
+my_mission = MalmoPython.MissionSpec(mission_xml, True)
 my_mission_record = MalmoPython.MissionRecordSpec()
 
 # Attempt to start a mission:
@@ -107,7 +159,7 @@ print("Mission running ", end=" ")
 
 # Loop until mission ends:
 while world_state.is_mission_running:
-    print(".", end="")
+    # print(".", end="")
     time.sleep(0.1)
     world_state = agent_host.getWorldState()
     for error in world_state.errors:
