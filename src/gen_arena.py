@@ -80,7 +80,7 @@ def gen_mission_xml(arena_size: int):
                     <DrawCuboid x1='-{(arena_size//2) + 1}' x2='{(arena_size//2) + 1}' y1='2' y2='3' z1='-{(arena_size//2) + 1}' z2='{(arena_size//2) + 1}' type='air'/>"""
     # generate floor
     mission_string += f"""
-                    <DrawCuboid x1='-{arena_size//2}' x2='{arena_size//2}' y1='1' y2='2' z1='-{arena_size//2}' z2='{arena_size//2}' type='quartz_block'/>"""
+                    <DrawCuboid x1='-{arena_size//2}' x2='{arena_size//2}' y1='1' y2='1' z1='-{arena_size//2}' z2='{arena_size//2}' type='quartz_block'/>"""
     # generate walls
     mission_string += f"""
                     <DrawCuboid x1='-{arena_size//2 + 1}' x2='{arena_size//2 + 1}' y1='2' y2='3' z1='-{arena_size//2 + 1}' z2='{arena_size//2 + 1}' type='stonebrick'/>
