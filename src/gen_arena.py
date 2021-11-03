@@ -100,7 +100,7 @@ def gen_mission_xml(
     mission_string += f"""
                     <DrawCuboid x1='0' x2='{arena_size - 1}' y1='1' y2='1' z1='0' z2='{arena_size - 1}' type='iron_block'/>"""
     # generate walls
-    if not is_closed_arena:
+    if is_closed_arena:
         mission_string += f"""
                         <DrawCuboid x1='-1' x2='{arena_size}' y1='2' y2='3' z1='-1' z2='{arena_size}' type='stonebrick'/>
                         <DrawCuboid x1='0' x2='{arena_size-1}' y1='2' y2='3' z1='0' z2='{arena_size-1}' type='air'/>"""
