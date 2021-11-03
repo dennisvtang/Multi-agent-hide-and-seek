@@ -107,6 +107,7 @@ def gen_mission_xml(
 
     # add quit condition
     mission_string += f"""
+            </DrawingDecorator>
                 <ServerQuitWhenAnyAgentFinishes/>
             </ServerHandlers>
         </ServerSection>"""
