@@ -47,6 +47,10 @@ def gen_mission_xml(
 
     Args:
         arena_size (int):
+            Specify the size of the square play area for the agents. Resulting play area will be of size (arena_size * arena_size). Does not include the walls of the arena.
+        is_closed_arena (bool):
+            Specify if the area will be closed by walls. A closed arena will result in rooms. An open arena will still generate dividers that would've created the rooms, but the outer wall isn't generated which
+            will act as obstacles instead.
         **kwargs:
             Arbitrary keyword arguments.
 
@@ -57,10 +61,6 @@ def gen_mission_xml(
                 Specify if the mission should randomly generate blocks for the agents to pick up and place.
             num_blocks (int):
                 Specify the number of blocks that should be generated.
-            Specify the size of the square play area for the agents. Resulting play area will be of size (arena_size * arena_size). Does not include the walls of the arena.
-        is_closed_arena (bool):
-            Specify if the area will be closed by walls. A closed arena will result in rooms. An open arena will still generate dividers that would've created the rooms, but the outer wall isn't generated which
-            will act as obstacles instead.
 
     Returns:
         str: A formated Malmo mission XML string with the requested settings.
