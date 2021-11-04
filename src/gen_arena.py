@@ -202,6 +202,118 @@ def gen_mission_xml(
                 last_was_horizontal = not last_was_horizontal
 
                 room_count += 1
+        elif kwargs["room_type"] == "parallel":
+            while room_count != num_rooms - 1:
+                # don't want to place dividers against the outer walls
+                # determines what row or column a divider will start
+                wall_index = randint(3, arena_size - 4)
+
+                # vertical divider
+                if last_was_horizontal:
+                    # retry placement of vertical divider as it would've gone in a door of a horizontal divider
+                    if wall_index in horizontal_doors:
+                        continue
+
+                    # start divider from top
+                    if randint(-1, 1) > 0:
+                        for i in range(arena_size):
+                            # generation of this divider bumped into another divider
+                            if play_arena[i][wall_index] == 1:
+                                break
+                            play_arena[i][wall_index] = 1
+
+                        # create door within divider
+                        door_index = randint(0, i - 1)
+                        play_arena[door_index][wall_index] = 0
+
+                    # start divider from bottom
+                    else:
+                        for i in range(arena_size - 1, -1, -1):
+                            # generation of this divider bumped into another divider
+                            if play_arena[i][wall_index] == 1:
+                                break
+                            play_arena[i][wall_index] = 1
+
+                        # create door within divider
+                        door_index = randint(i, arena_size - 1)
+                        play_arena[door_index][wall_index] = 0
+
+                    vertical_doors.append(door_index)
+
+                # horizontal divider
+                else:
+                    # retry placement of horizontal divider as it would've gone in a door of a vertical divider
+                    if wall_index in vertical_doors:
+                        continue
+
+                    # start divider from left
+                    if randint(-1, 1) < 0:
+                        for i in range(arena_size):
+                            # generation of this divider bumped into another divider
+                            if play_arena[wall_index][i] == 1:
+                                bumped_wall_col_index = i
+                                break
+                            play_arena[wall_index][i] = 1
+
+                        # create door within new divider
+                        door_index = randint(0, i - 1)
+                        play_arena[wall_index][door_index] = 0
+
+                        # create door within old bumped divider
+                        try:
+                            bumped_wall_row_index = [
+                                row[bumped_wall_col_index] for row in play_arena
+                            ].index(0)
+
+                            # new door top
+                            if bumped_wall_row_index > wall_index:
+                                row = randint(0, wall_index - 1)
+                                col = bumped_wall_col_index
+                                play_arena[row][col] = 0
+                            # new door bottom
+                            else:
+                                row = randint(wall_index + 1, arena_size - 1)
+                                col = bumped_wall_col_index
+                                play_arena[row][col] = 0
+                        except:
+                            pass
+
+                    # start divider from right
+                    else:
+                        for i in range(arena_size - 1, -1, -1):
+                            # generation of this divider bumped into another divider
+                            if play_arena[wall_index][i] == 1:
+                                bumped_wall_col_index = i
+                                break
+                            play_arena[wall_index][i] = 1
+
+                        # create door within new divider
+                        door_index = randint(i + 1, arena_size - 1)
+                        play_arena[wall_index][door_index] = 0
+
+                        # create door within old bumped divider
+                        try:
+                            bumped_wall_row_index = [
+                                row[bumped_wall_col_index] for row in play_arena
+                            ].index(0)
+
+                            # new door top
+                            if bumped_wall_row_index > wall_index:
+                                row = randint(0, wall_index - 1)
+                                col = bumped_wall_col_index
+                                play_arena[row][col] = 0
+                            # new door bottom
+                            else:
+                                row = randint(wall_index + 1, arena_size - 1)
+                                col = bumped_wall_col_index
+                                play_arena[row][col] = 0
+                        except:
+                            pass
+
+                    horizontal_doors.append(door_index)
+
+                last_was_horizontal = not last_was_horizontal
+
                 room_count += 1
         else:
             print(kwargs["room_type"])
@@ -254,11 +366,8 @@ if agent_host.receivedArgument("help"):
 while True:
     # setup Malmo mission
     mission_xml = gen_mission_xml(
-        arena_size=10,
-        is_closed_arena=True,
-        num_rooms=3,
+        arena_size=10, is_closed_arena=True, num_rooms=3, room_type="parallel"
     )
-    print(mission_xml)
     # print(mission_xml)
     my_mission = MalmoPython.MissionSpec(mission_xml, True)
     my_mission_record = MalmoPython.MissionRecordSpec()
