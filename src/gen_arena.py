@@ -205,18 +205,13 @@ def gen_mission_xml(
         else:
             print(kwargs["room_type"])
             raise ValueError(f"room_type: {kwargs['room_type']} is not supported.")
-    for i in play_arena:
-        print(i)
+
     # place dividers based on 2D map of play area
     for row_index in range(len(play_arena)):
         for col_index in range(len(play_arena)):
             if play_arena[row_index][col_index] == 1:
                 mission_string += f"""
                     <DrawBlock x='{col_index}'  y='{2}' z='{row_index}' type='cobblestone'/>"""
-
-    # mission_string += f"""
-    #                 <DrawCuboid x1='-{arena_size//2 + 1}' x2='{arena_size//2 + 1}' y1='2' y2='3' z1='-{arena_size//2 + 1}' z2='{arena_size//2 + 1}' type='stonebrick'/>
-    # """
 
     # add quit condition
     mission_string += f"""
