@@ -119,18 +119,28 @@ def gen_mission_xml(
     # 2D map of PLAY AREA
     play_arena = [[0 for _ in range(arena_size)] for _ in range(arena_size)]
 
+    # tracks ROW INDEX doors for vertical walls and COL INDEX doors for horizontal walls to prevent walls from intersecting each other at doorways
+    vertical_doors = []
+    horizontal_doors = []
+
     # divider placement will always flip every other divider
     last_was_horizontal = True
 
     # generate dividers/obstacles
     if num_rooms > 1:
+        room_count = 0
         if kwargs["room_type"] == "sequential":
-            for _ in range(num_rooms - 1):
-                # don't want to place dividers against the outter walls
+            while room_count != num_rooms - 1:
+                # don't want to place dividers against the outer walls
+                # determines what row or column a divider will start
                 wall_index = randint(3, arena_size - 4)
 
                 # vertical divider
                 if last_was_horizontal:
+                    # retry placement of vertical divider as it would've gone in a door of a horizontal divider
+                    if wall_index in horizontal_doors:
+                        continue
+
                     # start divider from top
                     if randint(-1, 1) > 0:
                         for i in range(arena_size):
@@ -141,7 +151,6 @@ def gen_mission_xml(
 
                         # create door within divider
                         door_index = randint(0, i - 1)
-                        print(f"door_index: {door_index}")
                         play_arena[door_index][wall_index] = 0
 
                     # start divider from bottom
@@ -154,11 +163,16 @@ def gen_mission_xml(
 
                         # create door within divider
                         door_index = randint(i, arena_size - 1)
-                        print(f"door_index: {door_index}")
                         play_arena[door_index][wall_index] = 0
+
+                    vertical_doors.append(door_index)
 
                 # horizontal divider
                 else:
+                    # retry placement of horizontal divider as it would've gone in a door of a vertical divider
+                    if wall_index in vertical_doors:
+                        continue
+
                     # start divider from left
                     if randint(-1, 1) < 0:
                         for i in range(arena_size):
@@ -183,11 +197,14 @@ def gen_mission_xml(
                         door_index = randint(i + 1, arena_size - 1)
                         play_arena[wall_index][door_index] = 0
 
+                    horizontal_doors.append(door_index)
+
                 last_was_horizontal = not last_was_horizontal
+
+                room_count += 1
         else:
             print(kwargs["room_type"])
             raise ValueError(f"room_type: {kwargs['room_type']} is not supported.")
-
     for i in play_arena:
         print(i)
     # place dividers based on 2D map of play area
