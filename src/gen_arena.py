@@ -119,10 +119,6 @@ def gen_mission_xml(
     play_arena = [[0 for _ in range(arena_size)] for _ in range(arena_size)]
 
     last_was_horizontal = True
-    vertical_door_indices = set()
-    horizontal_door_indices = set()
-
-    print(num_rooms)
 
     if num_rooms != 1:
         for _ in range(num_rooms - 1):
@@ -147,7 +143,6 @@ def gen_mission_xml(
                     door_index = randint(0, i - 1)
                     print(f"door_index: {door_index}")
                     play_arena[door_index][wall_index] = 0
-                    horizontal_door_indices.add(wall_index)
 
                 # start divider from bottom
                 else:
@@ -161,7 +156,6 @@ def gen_mission_xml(
                     door_index = randint(i, arena_size - 1)
                     print(f"door_index: {door_index}")
                     play_arena[door_index][wall_index] = 0
-                    horizontal_door_indices.add(wall_index)
 
             # horizontal divider
             else:
@@ -179,7 +173,6 @@ def gen_mission_xml(
                     door_index = randint(0, i - 1)
                     print(f"door_index: {door_index}")
                     play_arena[wall_index][door_index] = 0
-                    vertical_door_indices.add(door_index)
 
                 # start divider from right
                 else:
@@ -193,7 +186,6 @@ def gen_mission_xml(
                     door_index = randint(i + 1, arena_size - 1)
                     print(f"door_index: {door_index}")
                     play_arena[wall_index][door_index] = 0
-                    horizontal_door_indices.add(wall_index)
 
             last_was_horizontal = not last_was_horizontal
 
