@@ -125,15 +125,10 @@ def gen_mission_xml(
             # don't want to place dividers against the outter walls
             wall_index = randint(3, arena_size - 4)
 
-            print(f"wall_index: {wall_index}")
-
             # vertical divider
             if last_was_horizontal:
-                print(f"Creating a vertical divider at index {wall_index}")
-
                 # start divider from top
                 if randint(-1, 1) > 0:
-                    print("     starting divider from top")
                     for i in range(arena_size):
                         if play_arena[i][wall_index] == 1:
                             break
@@ -146,7 +141,6 @@ def gen_mission_xml(
 
                 # start divider from bottom
                 else:
-                    print("     starting divider from bottom")
                     for i in range(arena_size - 1, -1, -1):
                         if play_arena[i][wall_index] == 1:
                             break
@@ -159,11 +153,8 @@ def gen_mission_xml(
 
             # horizontal divider
             else:
-                print(f"Creating a horizontal divider at index {wall_index}")
-
                 # start divider from left
                 if randint(-1, 1) < 0:
-                    print("     starting divider from left")
                     for i in range(arena_size):
                         if play_arena[wall_index][i] == 1:
                             break
@@ -171,12 +162,10 @@ def gen_mission_xml(
 
                     # create door within divider
                     door_index = randint(0, i - 1)
-                    print(f"door_index: {door_index}")
                     play_arena[wall_index][door_index] = 0
 
                 # start divider from right
                 else:
-                    print("     starting divider from right")
                     for i in range(arena_size - 1, -1, -1):
                         if play_arena[wall_index][i] == 1:
                             break
@@ -184,7 +173,6 @@ def gen_mission_xml(
 
                     # create door within divider
                     door_index = randint(i + 1, arena_size - 1)
-                    print(f"door_index: {door_index}")
                     play_arena[wall_index][door_index] = 0
 
             last_was_horizontal = not last_was_horizontal
