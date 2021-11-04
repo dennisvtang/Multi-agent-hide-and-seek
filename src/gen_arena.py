@@ -134,6 +134,7 @@ def gen_mission_xml(
                     # start divider from top
                     if randint(-1, 1) > 0:
                         for i in range(arena_size):
+                            # generation of this divider bumped into another divider
                             if play_arena[i][wall_index] == 1:
                                 break
                             play_arena[i][wall_index] = 1
@@ -146,6 +147,7 @@ def gen_mission_xml(
                     # start divider from bottom
                     else:
                         for i in range(arena_size - 1, -1, -1):
+                            # generation of this divider bumped into another divider
                             if play_arena[i][wall_index] == 1:
                                 break
                             play_arena[i][wall_index] = 1
@@ -160,6 +162,7 @@ def gen_mission_xml(
                     # start divider from left
                     if randint(-1, 1) < 0:
                         for i in range(arena_size):
+                            # generation of this divider bumped into another divider
                             if play_arena[wall_index][i] == 1:
                                 break
                             play_arena[wall_index][i] = 1
@@ -171,6 +174,7 @@ def gen_mission_xml(
                     # start divider from right
                     else:
                         for i in range(arena_size - 1, -1, -1):
+                            # generation of this divider bumped into another divider
                             if play_arena[wall_index][i] == 1:
                                 break
                             play_arena[wall_index][i] = 1
