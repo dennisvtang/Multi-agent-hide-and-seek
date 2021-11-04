@@ -112,9 +112,9 @@ def gen_mission_xml(
     if "num_rooms" in kwargs:
         num_rooms = kwargs["num_rooms"]
         if type(num_rooms) == tuple:
-            num_rooms = randint(num_rooms)
+            num_rooms = randint(*num_rooms)
     else:
-        num_rooms = randint(1, 3)
+        num_rooms = 0
 
     # 2D area of PLAY AREA
     play_arena = [[0 for _ in range(arena_size)] for _ in range(arena_size)]
@@ -122,7 +122,7 @@ def gen_mission_xml(
     # divider placement will always flip every other divider
     last_was_horizontal = True
 
-    if num_rooms != 1:
+    if num_rooms > 1:
         for _ in range(num_rooms - 1):
             # don't want to place dividers against the outter walls
             wall_index = randint(3, arena_size - 4)
