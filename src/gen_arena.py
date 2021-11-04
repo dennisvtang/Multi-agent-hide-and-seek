@@ -108,6 +108,7 @@ def gen_mission_xml(
                     <DrawCuboid x1='0' x2='{arena_size - 1}' y1='2' y2='3' z1='0' z2='{arena_size - 1}' type='air'/>"""
 
     # generate room dividers/obstacles
+    # process extra settings regarding room generation
     if "num_rooms" in kwargs:
         num_rooms = kwargs["num_rooms"]
         if type(num_rooms) == tuple:
@@ -118,6 +119,7 @@ def gen_mission_xml(
     # 2D area of PLAY AREA
     play_arena = [[0 for _ in range(arena_size)] for _ in range(arena_size)]
 
+    # divider placement will always flip every other divider
     last_was_horizontal = True
 
     if num_rooms != 1:
