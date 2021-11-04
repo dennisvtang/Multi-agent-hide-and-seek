@@ -116,12 +116,13 @@ def gen_mission_xml(
     else:
         num_rooms = 0
 
-    # 2D area of PLAY AREA
+    # 2D map of PLAY AREA
     play_arena = [[0 for _ in range(arena_size)] for _ in range(arena_size)]
 
     # divider placement will always flip every other divider
     last_was_horizontal = True
 
+    # generate dividers/obstacles
     if num_rooms > 1:
         for _ in range(num_rooms - 1):
             # don't want to place dividers against the outter walls
@@ -181,7 +182,7 @@ def gen_mission_xml(
 
     for i in play_arena:
         print(i)
-    # exit()
+    # place dividers based on 2D map of play area
     for row_index in range(len(play_arena)):
         for col_index in range(len(play_arena)):
             if play_arena[row_index][col_index] == 1:
