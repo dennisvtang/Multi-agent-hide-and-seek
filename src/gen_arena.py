@@ -26,6 +26,8 @@ import MalmoPython
 import os
 import sys
 import time
+from random import randint
+
 
 if sys.version_info[0] == 2:
     sys.stdout = os.fdopen(
@@ -105,6 +107,109 @@ def gen_mission_xml(
                     <DrawCuboid x1='-1' x2='{arena_size}' y1='2' y2='3' z1='-1' z2='{arena_size}' type='stonebrick'/>
                     <DrawCuboid x1='0' x2='{arena_size - 1}' y1='2' y2='3' z1='0' z2='{arena_size - 1}' type='air'/>"""
 
+    # generate room dividers/obstacles
+    if "num_rooms" in kwargs:
+        num_rooms = kwargs["num_rooms"]
+        if type(num_rooms) == tuple:
+            num_rooms = randint(num_rooms)
+    else:
+        num_rooms = randint(1, 3)
+
+    # 2D area of PLAY AREA
+    play_arena = [[0 for _ in range(arena_size)] for _ in range(arena_size)]
+
+    last_was_horizontal = True
+    vertical_door_indices = set()
+    horizontal_door_indices = set()
+
+    print(num_rooms)
+
+    if num_rooms != 1:
+        for _ in range(num_rooms - 1):
+            # don't want to place dividers against the outter walls
+            wall_index = randint(3, arena_size - 4)
+
+            print(f"wall_index: {wall_index}")
+
+            # vertical divider
+            if last_was_horizontal:
+                print(f"Creating a vertical divider at index {wall_index}")
+
+                # start divider from top
+                if randint(-1, 1) > 0:
+                    print("     starting divider from top")
+                    for i in range(arena_size):
+                        if play_arena[i][wall_index] == 1:
+                            break
+                        play_arena[i][wall_index] = 1
+
+                    # create door within divider
+                    door_index = randint(0, i - 1)
+                    print(f"door_index: {door_index}")
+                    play_arena[door_index][wall_index] = 0
+                    horizontal_door_indices.add(wall_index)
+
+                # start divider from bottom
+                else:
+                    print("     starting divider from bottom")
+                    for i in range(arena_size - 1, -1, -1):
+                        if play_arena[i][wall_index] == 1:
+                            break
+                        play_arena[i][wall_index] = 1
+
+                    # create door within divider
+                    door_index = randint(i, arena_size - 1)
+                    print(f"door_index: {door_index}")
+                    play_arena[door_index][wall_index] = 0
+                    horizontal_door_indices.add(wall_index)
+
+            # horizontal divider
+            else:
+                print(f"Creating a horizontal divider at index {wall_index}")
+
+                # start divider from left
+                if randint(-1, 1) < 0:
+                    print("     starting divider from left")
+                    for i in range(arena_size):
+                        if play_arena[wall_index][i] == 1:
+                            break
+                        play_arena[wall_index][i] = 1
+
+                    # create door within divider
+                    door_index = randint(0, i - 1)
+                    print(f"door_index: {door_index}")
+                    play_arena[wall_index][door_index] = 0
+                    vertical_door_indices.add(door_index)
+
+                # start divider from right
+                else:
+                    print("     starting divider from right")
+                    for i in range(arena_size - 1, -1, -1):
+                        if play_arena[wall_index][i] == 1:
+                            break
+                        play_arena[wall_index][i] = 1
+
+                    # create door within divider
+                    door_index = randint(i + 1, arena_size - 1)
+                    print(f"door_index: {door_index}")
+                    play_arena[wall_index][door_index] = 0
+                    horizontal_door_indices.add(wall_index)
+
+            last_was_horizontal = not last_was_horizontal
+
+    for i in play_arena:
+        print(i)
+    # exit()
+    for row_index in range(len(play_arena)):
+        for col_index in range(len(play_arena)):
+            if play_arena[row_index][col_index] == 1:
+                mission_string += f"""
+                    <DrawBlock x='{col_index}'  y='{2}' z='{row_index}' type='cobblestone'/>"""
+
+    # mission_string += f"""
+    #                 <DrawCuboid x1='-{arena_size//2 + 1}' x2='{arena_size//2 + 1}' y1='2' y2='3' z1='-{arena_size//2 + 1}' z2='{arena_size//2 + 1}' type='stonebrick'/>
+    # """
+
     # add quit condition
     mission_string += f"""
                 </DrawingDecorator>
@@ -150,6 +255,7 @@ while True:
         num_rooms=3,
     )
     print(mission_xml)
+    # print(mission_xml)
     my_mission = MalmoPython.MissionSpec(mission_xml, True)
     my_mission_record = MalmoPython.MissionRecordSpec()
 
