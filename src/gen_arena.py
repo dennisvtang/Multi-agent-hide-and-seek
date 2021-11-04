@@ -202,6 +202,7 @@ def gen_mission_xml(
                 last_was_horizontal = not last_was_horizontal
 
                 room_count += 1
+                room_count += 1
         else:
             print(kwargs["room_type"])
             raise ValueError(f"room_type: {kwargs['room_type']} is not supported.")
