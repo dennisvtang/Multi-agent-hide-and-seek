@@ -220,11 +220,49 @@ def quadrant_env(
 
     # TODO generate blocks
     if num_blocks != 0:
-        pass
+        block_counter = 0
+        while block_counter != num_blocks:
+            # generate blocks ANYWHERE in play area
+            if item_gen["blocks_inside"] and item_gen["blocks_outside"]:
+                block_index = (randint(0, arena_size - 1), randint(0, arena_size - 1))
+                print(block_index)
+                # check if block would generate in a wall
+                if play_arena[block_index[0]][block_index[1]] == 1:
+                    continue
+                else:
+                    quadrant_env += f"""
+                    <DrawItem x="{block_index[0]}" y="2" z="{block_index[1]}" type="dirt"/>"""
+
+            # generate blocks only INSIDE quadrant
+            elif item_gen["blocks_inside"]:
+                pass
+            # generate blocks only OUTSIDE quadrant
+            elif item_gen["blocks_oustide"]:
+                pass
+
+            block_counter += 1
 
     # TODO generate stairs
     if num_stairs != 0:
-        pass
+        stair_counter = 0
+        while stair_counter != num_stairs:
+            # generate stairs ANYWHERE in play area
+            if item_gen["stairs_inside"] and item_gen["stairs_outside"]:
+                stair_index = (randint(0, arena_size - 1), randint(0, arena_size - 1))
+                # check if block would generate in a wall
+                if play_arena[stair_index[0]][stair_index[1]] == 1:
+                    continue
+                else:
+                    quadrant_env += f"""
+                    <DrawItem x="{stair_index[0]}" y="2" z="{stair_index[1]}" type="oak_stairs"/>"""
+            # generate blocks only INSIDE quadrant
+            elif item_gen["stairs_inside"]:
+                pass
+            # generate blocks only OUTSIDE quadrant
+            elif item_gen["blocks_oustide"]:
+                pass
+
+            stair_counter += 1
 
     return quadrant_env
 
