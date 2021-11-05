@@ -81,7 +81,7 @@ def gen_mission_xml(
                 <Weather>clear</Weather>
             </ServerInitialConditions>"""
 
-    mission_string += f"""{create_env(arena_size, is_closed_arena, env_type, num_blocks, num_stairs, **kwargs)}"""
+    mission_string += f"""{create_env(arena_size, is_closed_arena, env_type, item_gen, num_blocks, num_stairs, **kwargs)}"""
 
     # add quit condition
     mission_string += f"""
