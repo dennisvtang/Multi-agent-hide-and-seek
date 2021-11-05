@@ -142,7 +142,7 @@ def gen_mission_xml(
                         continue
 
                     # start divider from top
-                    if randint(-1, 1) > 0:
+                    if randint(-1, 0) > 0:
                         for i in range(arena_size):
                             # generation of this divider bumped into another divider
                             if play_arena[i][wall_index] == 1:
@@ -174,7 +174,7 @@ def gen_mission_xml(
                         continue
 
                     # start divider from left
-                    if randint(-1, 1) < 0:
+                    if randint(-1, 0) < 0:
                         for i in range(arena_size):
                             # generation of this divider bumped into another divider
                             if play_arena[wall_index][i] == 1:
@@ -215,7 +215,7 @@ def gen_mission_xml(
                         continue
 
                     # start divider from top
-                    if randint(-1, 1) > 0:
+                    if randint(-1, 0) > 0:
                         for i in range(arena_size):
                             # generation of this divider bumped into another divider
                             if play_arena[i][wall_index] == 1:
@@ -247,7 +247,7 @@ def gen_mission_xml(
                         continue
 
                     # start divider from left
-                    if randint(-1, 1) < 0:
+                    if randint(-1, 0) < 0:
                         for i in range(arena_size):
                             # generation of this divider bumped into another divider
                             if play_arena[wall_index][i] == 1:
@@ -345,7 +345,6 @@ def gen_mission_xml(
                 # create doors
                 # randomize placement of ONE door
                 if num_doors == 1:
-                    # todo fix all instances of randint
                     # horizontal wall
                     door_index = randint(quadrant_coords[0][0], quadrant_coords[1][1])
                     if randint(-1, 0) < 0:
