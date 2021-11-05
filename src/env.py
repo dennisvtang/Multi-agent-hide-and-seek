@@ -56,119 +56,120 @@ def quadrant_env(
     else:
         quadrant_num_doors = randint(1, 2)
 
+    # 2D map of area agents can walk around
+    play_arena = [[0 for _ in range(arena_size)] for _ in range(arena_size)]
+
     # generate quadrant room
     if quadrant_loc == 0:
         # create top left quadrant room
-        quadrant_env += f"""
-                    <DrawCuboid x1='0' y1='2' z1='0' x2='{quadrant_size}' y2='2' z2='{quadrant_size}' type='cobblestone'/>
-                    <DrawCuboid x1='0' y1='2' z1='0' x2='{quadrant_size - 1}' y2='2' z2='{quadrant_size - 1}' type='air'/>"""
+        # place vertical wall
+        for i in range(quadrant_size + 1):
+            play_arena[i][quadrant_size] = 1
+        # place horizontal wall
+        for i in range(quadrant_size + 1):
+            play_arena[quadrant_size][i] = 1
 
-        # track quadrant play area
-        # (top_left, bottom_right)
+        # top left, bottom right
         quadrant_coords = ((0, 0), (quadrant_size - 1, quadrant_size - 1))
 
         # create doors
         # randomize placement of ONE door
         if quadrant_num_doors == 1:
-            # horizontal wall
-            door_index = randint(quadrant_coords[0][0], quadrant_coords[1][1])
+            # place door on horizontal wall
             if randint(-1, 0) < 0:
-                quadrant_env += f"""
-                    <DrawCuboid x1='{door_index}' y1='2' z1='0' x2='{door_index}' y2='2' z2='{arena_size - 1}' type='air'/>"""
-
-            # vertical wall
+                door_index = randint(quadrant_coords[0][1], quadrant_coords[1][1])
+                play_arena[quadrant_size][door_index] = 0
+            # place door on vertical wall
             else:
-                quadrant_env += f"""
-                    <DrawCuboid x1='0' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>"""
+                door_index = randint(quadrant_coords[0][0], quadrant_coords[1][0])
+                play_arena[door_index][quadrant_size] = 0
+
         # create doors on both walls
         else:
-            # horizontal wall
-            door_index = randint(quadrant_coords[0][0], quadrant_coords[1][1])
-            quadrant_env += f"""
-                    <DrawCuboid x1='{door_index}' y1='2' z1='0' x2='{door_index}' y2='2' z2='{arena_size - 1}' type='air'/>"""
+            pass
+            # place door on horizontal wall
+            door_index = randint(quadrant_coords[0][1], quadrant_coords[1][1])
+            play_arena[quadrant_size][door_index] = 0
 
-            # vertical wall
-            door_index = randint(quadrant_coords[0][0], quadrant_coords[1][1])
-            quadrant_env += f"""
-                    <DrawCuboid x1='0' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>"""
+            # place door on vertical wall
+            door_index = randint(quadrant_coords[0][0], quadrant_coords[1][0])
+            play_arena[door_index][quadrant_size] = 0
     elif quadrant_loc == 1:
         # create top right quadrant room
-        quadrant_env += f"""
-                    <DrawCuboid x1='{arena_size - 1} 'y1='2' z1='0' x2='{quadrant_size}' y2='2' z2='{quadrant_size}' type='cobblestone'/>
-                    <DrawCuboid x1='{arena_size - 1}' x2='{quadrant_size + 1}' y1='2' y2='2' z1='0' z2='{quadrant_size - 1}' type='air'/>"""
+        # place vertical wall
+        for i in range(quadrant_size + 1):
+            play_arena[i][quadrant_size] = 1
+        # place horizontal wall
+        for i in range(arena_size - 1, quadrant_size, -1):
+            play_arena[quadrant_size][i] = 1
 
-        # track quadrant play area
-        # (top right, bottom left)
-        quadrant_coords = ((0, arena_size - 1), (quadrant_size - 1, quadrant_size + 1))
+        # top left, bottom right
+        quadrant_coords = ((0, quadrant_size), (quadrant_size - 1, arena_size - 1))
 
         # create doors
         # randomize placement of ONE door
         if quadrant_num_doors == 1:
-            # horizontal wall
+            # place door on horizontal wall
             if randint(-1, 0) < 0:
-                door_index = randint(quadrant_coords[1][1], quadrant_coords[0][1])
-                quadrant_env += f"""
-                    <DrawCuboid x1='{door_index}' y1='2' z1='0' x2='{door_index}' y2='2' z2='{arena_size - 1}' type='air'/>"""
-
-            # vertical wall
+                door_index = randint(quadrant_coords[0][1], quadrant_coords[1][1])
+                play_arena[quadrant_size][door_index] = 0
+            # place door on vertical wall
             else:
                 door_index = randint(quadrant_coords[0][0], quadrant_coords[1][0])
-                quadrant_env += f"""
-                    <DrawCuboid x1='0' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>"""
+                play_arena[door_index][quadrant_size] = 0
+
         # create doors on both walls
         else:
-            # horizontal wall
-            door_index = randint(quadrant_coords[1][1], quadrant_coords[0][1])
-            quadrant_env += f"""
-                <DrawCuboid x1='{door_index}' y1='2' z1='0' x2='{door_index}' y2='2' z2='{arena_size - 1}' type='air'/>"""
+            # place door on horizontal wall
+            door_index = randint(quadrant_coords[0][1], quadrant_coords[1][1])
+            play_arena[quadrant_size][door_index] = 0
 
-            # vertical wall
+            # place door on vertical wall
             door_index = randint(quadrant_coords[0][0], quadrant_coords[1][0])
-            quadrant_env += f"""
-                <DrawCuboid x1='0' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>"""
+            play_arena[door_index][quadrant_size] = 0
     elif quadrant_loc == 2:
-        # create bottom left quadrant room
-        quadrant_env += f"""
-                    <DrawCuboid x1='0' y1='2' z1='{arena_size - 1}' x2='{quadrant_size}' y2='2' z2='{quadrant_size}' type='cobblestone'/>
-                    <DrawCuboid x1='0' y1='2' z1='{arena_size - 1}' x2='{quadrant_size - 1}' y2='2' z2='{quadrant_size + 1}' type='air'/>"""
+        # create top right quadrant room
+        # place vertical wall
+        for i in range(arena_size - 1, quadrant_size, -1):
+            play_arena[i][quadrant_size] = 1
+        # place horizontal wall
+        for i in range(quadrant_size + 1):
+            play_arena[quadrant_size][i] = 1
 
-        # track quadrant play area
-        # (top right, bottom left)
-        quadrant_coords = ((quadrant_size + 1, quadrant_size - 1), (arena_size - 1, 0))
+        # top left, bottom right
+        quadrant_coords = ((quadrant_size + 1, 0), (arena_size - 1, quadrant_size - 1))
 
         # create doors
         # randomize placement of ONE door
         if quadrant_num_doors == 1:
-            # horizontal wall
+            # place door on horizontal wall
             if randint(-1, 0) < 0:
-                door_index = randint(quadrant_coords[1][1], quadrant_coords[0][1])
-                quadrant_env += f"""
-                    <DrawCuboid x1='{door_index}' y1='2' z1='0' x2='{door_index}' y2='2' z2='{arena_size - 1}' type='air'/>"""
-
-            # vertical wall
+                door_index = randint(quadrant_coords[0][1], quadrant_coords[1][1])
+                play_arena[quadrant_size][door_index] = 0
+            # place door on vertical wall
             else:
                 door_index = randint(quadrant_coords[0][0], quadrant_coords[1][0])
-                quadrant_env += f"""
-                    <DrawCuboid x1='0' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>"""
+                play_arena[door_index][quadrant_size] = 0
+
         # create doors on both walls
         else:
-            # horizontal wall
-            door_index = randint(quadrant_coords[1][1], quadrant_coords[0][1])
-            quadrant_env += f"""
-                <DrawCuboid x1='{door_index}' y1='2' z1='0' x2='{door_index}' y2='2' z2='{arena_size - 1}' type='air'/>"""
+            # place door on horizontal wall
+            door_index = randint(quadrant_coords[0][1], quadrant_coords[1][1])
+            play_arena[quadrant_size][door_index] = 0
 
-            # vertical wall
+            # place door on vertical wall
             door_index = randint(quadrant_coords[0][0], quadrant_coords[1][0])
-            quadrant_env += f"""
-                <DrawCuboid x1='0' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>"""
+            play_arena[door_index][quadrant_size] = 0
     elif quadrant_loc == 3:
-        # create bottom right quadrant room
-        quadrant_env += f"""
-                    <DrawCuboid x1='{arena_size - 1}' y1='2' z1='{arena_size - 1}' x2='{quadrant_size}' y2='2' z2='{quadrant_size}' type='cobblestone'/>
-                    <DrawCuboid x1='{arena_size - 1}' y1='2' z1='{arena_size - 1}' x2='{quadrant_size + 1}' y2='2' z2='{quadrant_size + 1}' type='air'/>"""
+        # create top right quadrant room
+        # place vertical wall
+        for i in range(arena_size - 1, quadrant_size - 1, -1):
+            play_arena[i][quadrant_size] = 1
+        # place horizontal wall
+        for i in range(arena_size - 1, quadrant_size - 1, -1):
+            play_arena[quadrant_size][i] = 1
 
-        # track quadrant play area
-        # (top left, bottom right)
+        # top left, bottom right
         quadrant_coords = (
             (quadrant_size + 1, quadrant_size + 1),
             (arena_size - 1, arena_size - 1),
@@ -177,28 +178,32 @@ def quadrant_env(
         # create doors
         # randomize placement of ONE door
         if quadrant_num_doors == 1:
-            # horizontal wall
+            # place door on horizontal wall
             if randint(-1, 0) < 0:
                 door_index = randint(quadrant_coords[0][1], quadrant_coords[1][1])
-                quadrant_env += f"""
-                    <DrawCuboid x1='{door_index}' y1='2' z1='0' x2='{door_index}' y2='2' z2='{arena_size - 1}' type='air'/>"""
-
-            # vertical wall
+                play_arena[quadrant_size][door_index] = 0
+            # place door on vertical wall
             else:
                 door_index = randint(quadrant_coords[0][0], quadrant_coords[1][0])
-                quadrant_env += f"""
-                    <DrawCuboid x1='0' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>"""
+                play_arena[door_index][quadrant_size] = 0
+
         # create doors on both walls
         else:
-            # horizontal wall
+            # place door on horizontal wall
             door_index = randint(quadrant_coords[0][1], quadrant_coords[1][1])
-            quadrant_env += f"""
-                <DrawCuboid x1='{door_index}' y1='2' z1='0' x2='{door_index}' y2='2' z2='{arena_size - 1}' type='air'/>"""
+            play_arena[quadrant_size][door_index] = 0
 
-            # vertical wall
+            # place door on vertical wall
             door_index = randint(quadrant_coords[0][0], quadrant_coords[1][0])
-            quadrant_env += f"""
-                <DrawCuboid x1='0' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>"""
+            play_arena[door_index][quadrant_size] = 0
+
+    # place blocks based on 2D map
+    for row_index in range(len(play_arena)):
+        for col_index in range(len(play_arena)):
+            if play_arena[row_index][col_index] == 1:
+                quadrant_env += f"""
+                    <DrawBlock x='{col_index}'  y='{2}' z='{row_index}' type='cobblestone'/>"""
+
 
     # TODO generate blocks
     if num_blocks != 0:
