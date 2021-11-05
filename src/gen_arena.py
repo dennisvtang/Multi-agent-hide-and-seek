@@ -320,16 +320,12 @@ def gen_mission_xml(
             # 0 1
             # 2 3
             room_loc = randint(0, 3)
-            #! remove me after done testing
-            room_loc = 0
 
             # determine size of quadrant room
             room_size = randint(4, arena_size // 2)
 
             # determine number of doors in quadrant room
             num_doors = randint(1, 2)
-            #! remove me after done testing
-            num_doors = 2
 
             # top left quadrant room
             if room_loc == 0:
