@@ -413,6 +413,40 @@ def gen_mission_xml(
                 mission_string += f"""
                     <DrawCuboid x1='0' y1='2' z1='{arena_size - 1}' x2='{room_size}' y2='2' z2='{room_size}' type='cobblestone'/>
                     <DrawCuboid x1='0' y1='2' z1='{arena_size - 1}' x2='{room_size - 1}' y2='2' z2='{room_size + 1}' type='air'/>"""
+
+                # track quadrant play area
+                # (top right, bottom left)
+                quadrant_coords = ((room_size + 1, room_size - 1), (arena_size - 1, 0))
+
+                # create doors
+                # randomize placement of ONE door
+                if num_doors == 1:
+                    # horizontal wall
+                    if randint(-1, 0) < 0:
+                        door_index = randint(
+                            quadrant_coords[1][1], quadrant_coords[0][1]
+                        )
+                        mission_string += f"""
+                            <DrawCuboid x1='{door_index}' y1='2' z1='0' x2='{door_index}' y2='2' z2='{arena_size - 1}' type='air'/>"""
+
+                    # vertical wall
+                    else:
+                        door_index = randint(
+                            quadrant_coords[0][0], quadrant_coords[1][0]
+                        )
+                        mission_string += f"""
+                            <DrawCuboid x1='0' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>"""
+                # create doors on both walls
+                else:
+                    # horizontal wall
+                    door_index = randint(quadrant_coords[1][1], quadrant_coords[0][1])
+                    mission_string += f"""
+                        <DrawCuboid x1='{door_index}' y1='2' z1='0' x2='{door_index}' y2='2' z2='{arena_size - 1}' type='air'/>"""
+
+                    # vertical wall
+                    door_index = randint(quadrant_coords[0][0], quadrant_coords[1][0])
+                    mission_string += f"""
+                        <DrawCuboid x1='0' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>"""
             # bottom right quadrant room
             elif room_loc == 3:
                 # create quadrant room
