@@ -38,9 +38,12 @@ def quadrant_env(
 
     # determine size of quadrant room
     if "quadrant_size" in kwargs:
-        quadrant_size = kwargs["quadrant_size"]
+        if type(kwargs["quadrant_size"]) == tuple:
+            quadrant_size = randint(*kwargs["quadrant_size"])
+        else:
+            quadrant_size = kwargs["quadrant_size"]
     else:
-        quadrant_size = randint(4, arena_size // 2)
+        quadrant_size = randint(3, arena_size // 2)
 
     # determine location of quadrant room
     # 0 1
