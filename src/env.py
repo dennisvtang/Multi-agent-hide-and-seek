@@ -277,7 +277,7 @@ def create_env(
     **kwargs,
 ):
     """
-    Generate Malmo mission XML string of an hide and seek arena with the requested settings.
+    Generates a formated Malmo mission XML string of the environment with the requested settings.
 
     Arguments:
         arena_size (int):
