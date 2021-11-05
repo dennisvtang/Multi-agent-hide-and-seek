@@ -1,8 +1,10 @@
 from random import randint
+from typing import Dict
 
 
 def quadrant_env(
     arena_size: int,
+    item_gen: Dict[str, bool],
     num_blocks: int,
     num_stairs: int,
     **kwargs,
@@ -13,6 +15,14 @@ def quadrant_env(
     Arguments:
         arena_size (int):
             Specify the size of the square play area for the agents. Resulting play area will be of size (arena_size * arena_size). Does not include the walls of the arena.
+        item_gen (dict[str,bool]):
+            Rules that dictate how blocks and stairs will be generated.
+            {
+                "blocks_inside" : bool - Toggles block generation inside quadrant room.
+                "blocks_outside": bool - Toggles block generation inside quadrant room.
+                "stairs_inside" : bool - Toggles stairs generation inside quadrant room.
+                "stairs_outside": bool - Toggles stairs generation inside quadrant room.
+            }
         num_blocks (int):
             Specify the number of blocks that should be generated.
         num_stairs (int):

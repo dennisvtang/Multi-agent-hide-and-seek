@@ -6,6 +6,7 @@ import os
 import sys
 import time
 from random import randint
+from typing import Dict
 
 from env import create_env
 
@@ -23,6 +24,7 @@ def gen_mission_xml(
     arena_size: int,
     is_closed_arena: bool,
     env_type: str,
+    item_gen: Dict[str, bool],
     num_blocks: int,
     num_stairs: int,
     **kwargs,
@@ -37,6 +39,14 @@ def gen_mission_xml(
             Specify if the area will be closed by walls. A closed arena will result in rooms. An open arena will still generate dividers that would've created the rooms, but the outer walls aren't generated.
         env_type (str):
             Specify what environment type to generate.
+        item_gen (dict[str,bool]):
+            Rules that dictate how blocks and stairs will be generated.
+            {
+                "blocks_inside" : bool - Toggles block generation inside quadrant room.
+                "blocks_outside": bool - Toggles block generation inside quadrant room.
+                "stairs_inside" : bool - Toggles stairs generation inside quadrant room.
+                "stairs_outside": bool - Toggles stairs generation inside quadrant room.
+            }
                 "quadrant"
                     Results in a single room that is randomly placed in the corner of the play arena.
         num_blocks (int):
@@ -115,8 +125,16 @@ while True:
         arena_size=10,
         is_closed_arena=True,
         env_type="quadrant",
+        item_gen={
+            "blocks_inside": True,
+            "blocks_outside": True,
+            "stairs_inside": True,
+            "stairs_outside": True,
+        },
         num_blocks=5,
         num_stairs=3,
+        quadrant_loc=3,
+        quadrant_num_doors=2,
     )
     print(mission_xml)
     my_mission = MalmoPython.MissionSpec(mission_xml, True)
