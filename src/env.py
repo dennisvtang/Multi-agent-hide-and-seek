@@ -288,6 +288,14 @@ def create_env(
             Specify what environment type to generate.
                 "quadrant"
                     Results in a single room that is randomly placed in the corner of the play arena.
+        item_gen (dict[str,bool]):
+            Rules that dictate how blocks and stairs will be generated.
+            {
+                "blocks_inside" : bool - Toggles block generation inside quadrant room.
+                "blocks_outside": bool - Toggles block generation inside quadrant room.
+                "stairs_inside" : bool - Toggles stairs generation inside quadrant room.
+                "stairs_outside": bool - Toggles stairs generation inside quadrant room.
+            }
         num_blocks (int):
             Specify the number of blocks that should be generated.
         num_stairs (int):
