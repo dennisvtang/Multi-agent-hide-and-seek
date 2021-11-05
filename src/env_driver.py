@@ -39,6 +39,8 @@ def gen_mission_xml(
             Specify if the area will be closed by walls. A closed arena will result in rooms. An open arena will still generate dividers that would've created the rooms, but the outer walls aren't generated.
         env_type (str):
             Specify what environment type to generate.
+                "quadrant"
+                    Results in a single room that is randomly placed in the corner of the play arena.
         item_gen (dict[str,bool]):
             Rules that dictate how blocks and stairs will be generated.
             {
@@ -47,8 +49,6 @@ def gen_mission_xml(
                 "stairs_inside" : bool - Toggles stairs generation inside quadrant room.
                 "stairs_outside": bool - Toggles stairs generation inside quadrant room.
             }
-                "quadrant"
-                    Results in a single room that is randomly placed in the corner of the play arena.
         num_blocks (int):
             Specify the number of blocks that should be generated.
         num_stairs (int):
