@@ -271,6 +271,7 @@ def create_env(
     arena_size: int,
     is_closed_arena: bool,
     env_type: str,
+    item_gen: Dict[str, bool],
     num_blocks: int,
     num_stairs: int,
     **kwargs,
@@ -325,6 +326,7 @@ def create_env(
     if env_type == "quadrant":
         env += quadrant_env(
             arena_size=arena_size,
+            item_gen=item_gen,
             num_blocks=num_blocks,
             num_stairs=num_stairs,
             **kwargs,
