@@ -354,8 +354,7 @@ def gen_mission_xml(
                     # vertical wall
                     else:
                         mission_string += f"""
-                            <DrawCuboid x1='0' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>
-"""
+                            <DrawCuboid x1='0' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>"""
                 # create doors on both walls
                 else:
                     # horizontal wall
@@ -366,7 +365,7 @@ def gen_mission_xml(
                     # vertical wall
                     door_index = randint(quadrant_coords[0][0], quadrant_coords[1][1])
                     mission_string += f"""
-                            <DrawCuboid x1='0' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>
+                            <DrawCuboid x1='0' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>"""
             # top right quadrant room
             elif room_loc == 1:
                 # create quadrant room
