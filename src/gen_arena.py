@@ -51,18 +51,47 @@ def gen_mission_xml(
         arena_size (int):
             Specify the size of the square play area for the agents. Resulting play area will be of size (arena_size * arena_size). Does not include the walls of the arena.
         is_closed_arena (bool):
-            Specify if the area will be closed by walls. A closed arena will result in rooms. An open arena will still generate dividers that would've created the rooms, but the outer wall isn't generated which
-            will act as obstacles instead.
+            Specify if the area will be closed by walls. A closed arena will result in rooms. An open arena will still generate dividers that would've created the rooms, but the outer walls aren't generated.
         **kwargs:
             Arbitrary keyword arguments.
 
         Keyword Arguments:
-            num_rooms (int):
-                Specify the number of rooms to divide the arena into. The doors in between rooms will be randomly placed. If is_open_arena=True, the walls creating the rooms will still generate but will act as obstacles instead.
+            room_type (str):
+                Specify what sort of arena generation to use.
+                    "sequential":
+                        Results in rooms that are nested within one another. Subsequent rooms get progressively smaller.
+                    "parallel"
+                        Results in rooms that are NOT nested within one another.
+                        Ideally use num_rooms=3
+                    "quadrant"
+                        Results in a single room that is randomly placed in the corner of the play arena.
             gen_blocks (bool):
                 Specify if the mission should randomly generate blocks for the agents to pick up and place.
             num_blocks (int):
                 Specify the number of blocks that should be generated.
+            gen_stairs (bool):
+                Specify if the mission should randomly generate stairs for the agents to pick up and place.
+            num_stairs (int):
+                Specify the number of stairs that should be generated.
+
+
+            These keyword arguments are only valid when using room_type="sequential" or room_type="parallel".
+                num_rooms (int):
+                    Specify the number of rooms to divide the arena into. The doors in between rooms will be randomly placed. If is_open_arena=True, the walls creating the rooms will still generate but will act as obstacles instead.
+
+
+            These keyword arguments are only valid when using room_type="quadrant".
+                quadrant_size (int):
+                    Specify the size of the quadrant room. Will result in a room of size quadrant_size * quadrant_size.
+                    Defaults to randint(4, arena_size // 2).
+                quadrant_loc (int):
+                    Specify which corner to place the quadrant room. Defaults to randint(0, 3).
+                    0 1
+                    2 3
+                quadrant_num_doors (int):
+                    Specify how many doors the quadrant room should have. Defaults to randint(1, 2).
+                    1 - A door will be randomly placed one of the walls
+                    2 - A door will be placed on both walls
 
     Returns:
         str: A formated Malmo mission XML string with the requested settings.
