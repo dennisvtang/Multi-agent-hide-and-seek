@@ -339,6 +339,7 @@ def gen_mission_xml(
                     <DrawCuboid x1='0' y1='2' z1='0' x2='{room_size - 1}' y2='2' z2='{room_size - 1}' type='air'/>"""
 
                 # track quadrant play area
+                # (top_left, bottom_right)
                 quadrant_coords = ((0, 0), (room_size - 1, room_size - 1))
 
                 # create doors
