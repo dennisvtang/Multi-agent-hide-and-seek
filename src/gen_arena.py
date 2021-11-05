@@ -331,21 +331,25 @@ def gen_mission_xml(
             #! remove me after done testing
             num_doors = 2
 
+            # top left quadrant room
             if room_loc == 0:
                 # create quadrant room
                 mission_string += f"""
                     <DrawCuboid x1='0' y1='2' z1='0' x2='{room_size}' y2='2' z2='{room_size}' type='cobblestone'/>
                     <DrawCuboid x1='0' y1='2' z1='0' x2='{room_size - 1}' y2='2' z2='{room_size - 1}' type='air'/>"""
+            # top right quadrant room
             elif room_loc == 1:
                 # create quadrant room
                 mission_string += f"""
                     <DrawCuboid x1='{arena_size - 1} 'y1='2' z1='0' x2='{room_size}' y2='2' z2='{room_size}' type='cobblestone'/>
                     <DrawCuboid x1='{arena_size - 1}' x2='{room_size + 1}' y1='2' y2='2' z1='0' z2='{room_size - 1}' type='air'/>"""
+            # bottom left quadrant room
             elif room_loc == 2:
                 # create quadrant room
                 mission_string += f"""
                     <DrawCuboid x1='0' y1='2' z1='{arena_size - 1}' x2='{room_size}' y2='2' z2='{room_size}' type='cobblestone'/>
                     <DrawCuboid x1='0' y1='2' z1='{arena_size - 1}' x2='{room_size - 1}' y2='2' z2='{room_size + 1}' type='air'/>"""
+            # bottom right quadrant room
             elif room_loc == 3:
                 # create quadrant room
                 mission_string += f"""
