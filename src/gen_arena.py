@@ -337,6 +337,35 @@ def gen_mission_xml(
                 mission_string += f"""
                     <DrawCuboid x1='0' y1='2' z1='0' x2='{room_size}' y2='2' z2='{room_size}' type='cobblestone'/>
                     <DrawCuboid x1='0' y1='2' z1='0' x2='{room_size - 1}' y2='2' z2='{room_size - 1}' type='air'/>"""
+
+                # track quadrant play area
+                quadrant_coords = ((0, 0), (room_size - 1, room_size - 1))
+
+                # create doors
+                # randomize placement of ONE door
+                if num_doors == 1:
+                    # todo fix all instances of randint
+                    # horizontal wall
+                    door_index = randint(quadrant_coords[0][0], quadrant_coords[1][1])
+                    if randint(-1, 0) < 0:
+                        mission_string += f"""
+                            <DrawCuboid x1='{door_index}' y1='2' z1='{door_index}' x2='{door_index}' y2='2' z2='{arena_size - 1}' type='air'/>"""
+
+                    # vertical wall
+                    else:
+                        mission_string += f"""
+                            <DrawCuboid x1='{door_index}' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>"""
+                # create doors on both walls
+                else:
+                    # horizontal wall
+                    door_index = randint(quadrant_coords[0][0], quadrant_coords[1][1])
+                    mission_string += f"""
+                        <DrawCuboid x1='{door_index}' y1='2' z1='{door_index}' x2='{door_index}' y2='2' z2='{arena_size - 1}' type='air'/>"""
+
+                    # vertical wall
+                    door_index = randint(quadrant_coords[0][0], quadrant_coords[1][1])
+                    mission_string += f"""
+                        <DrawCuboid x1='{door_index}' y1='2' z1='{door_index}' x2='{arena_size - 1}' y2='2' z2='{door_index}' type='air'/>"""
             # top right quadrant room
             elif room_loc == 1:
                 # create quadrant room
