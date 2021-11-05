@@ -315,6 +315,43 @@ def gen_mission_xml(
                 last_was_horizontal = not last_was_horizontal
 
                 room_count += 1
+        elif kwargs["room_type"] == "quadrant":
+            # determine location of quadrant room
+            # 0 1
+            # 2 3
+            room_loc = randint(0, 3)
+            #! remove me after done testing
+            room_loc = 0
+
+            # determine size of quadrant room
+            room_size = randint(4, arena_size // 2)
+
+            # determine number of doors in quadrant room
+            num_doors = randint(1, 2)
+            #! remove me after done testing
+            num_doors = 2
+
+            if room_loc == 0:
+                # create quadrant room
+                mission_string += f"""
+                    <DrawCuboid x1='0' y1='2' z1='0' x2='{room_size}' y2='2' z2='{room_size}' type='cobblestone'/>
+                    <DrawCuboid x1='0' y1='2' z1='0' x2='{room_size - 1}' y2='2' z2='{room_size - 1}' type='air'/>"""
+            elif room_loc == 1:
+                # create quadrant room
+                mission_string += f"""
+                    <DrawCuboid x1='{arena_size - 1} 'y1='2' z1='0' x2='{room_size}' y2='2' z2='{room_size}' type='cobblestone'/>
+                    <DrawCuboid x1='{arena_size - 1}' x2='{room_size + 1}' y1='2' y2='2' z1='0' z2='{room_size - 1}' type='air'/>"""
+            elif room_loc == 2:
+                # create quadrant room
+                mission_string += f"""
+                    <DrawCuboid x1='0' y1='2' z1='{arena_size - 1}' x2='{room_size}' y2='2' z2='{room_size}' type='cobblestone'/>
+                    <DrawCuboid x1='0' y1='2' z1='{arena_size - 1}' x2='{room_size - 1}' y2='2' z2='{room_size + 1}' type='air'/>"""
+            elif room_loc == 3:
+                # create quadrant room
+                mission_string += f"""
+                    <DrawCuboid x1='{arena_size - 1}' y1='2' z1='{arena_size - 1}' x2='{room_size}' y2='2' z2='{room_size}' type='cobblestone'/>
+                    <DrawCuboid x1='{arena_size - 1}' y1='2' z1='{arena_size - 1}' x2='{room_size + 1}' y2='2' z2='{room_size + 1}' type='air'/>"""
+
         else:
             print(kwargs["room_type"])
             raise ValueError(f"room_type: {kwargs['room_type']} is not supported.")
@@ -366,7 +403,7 @@ if agent_host.receivedArgument("help"):
 while True:
     # setup Malmo mission
     mission_xml = gen_mission_xml(
-        arena_size=10, is_closed_arena=True, num_rooms=3, room_type="parallel"
+        arena_size=10, is_closed_arena=True, num_rooms=3, room_type="quadrant"
     )
     # print(mission_xml)
     my_mission = MalmoPython.MissionSpec(mission_xml, True)
