@@ -161,10 +161,8 @@ def quadrant_env(
             else:
                 door_index = randint(quadrant_coords[0][0], quadrant_coords[1][0])
                 play_arena[door_index][quadrant_size] = 0
-
         # create doors on both walls
         else:
-            pass
             # place door on horizontal wall
             door_index = randint(quadrant_coords[0][1], quadrant_coords[1][1])
             play_arena[quadrant_size][door_index] = 0
@@ -176,13 +174,16 @@ def quadrant_env(
         # create top right quadrant room
         # place vertical wall
         for i in range(quadrant_size + 1):
-            play_arena[i][quadrant_size - 1] = 1
+            play_arena[i][arena_size - quadrant_size - 1] = 1
         # place horizontal wall
-        for i in range(arena_size - 1, quadrant_size - 1, -1):
+        for i in range(arena_size - 1, arena_size - quadrant_size - 1, -1):
             play_arena[quadrant_size][i] = 1
 
         # top left, bottom right
-        quadrant_coords = ((0, quadrant_size), (quadrant_size - 1, arena_size - 1))
+        quadrant_coords = (
+            (0, arena_size - quadrant_size),
+            (quadrant_size - 1, arena_size - 1),
+        )
 
         # create doors
         # randomize placement of ONE door
@@ -194,7 +195,7 @@ def quadrant_env(
             # place door on vertical wall
             else:
                 door_index = randint(quadrant_coords[0][0], quadrant_coords[1][0])
-                play_arena[door_index][quadrant_size] = 0
+                play_arena[door_index][arena_size - quadrant_size - 1] = 0
 
         # create doors on both walls
         else:
@@ -204,18 +205,21 @@ def quadrant_env(
 
             # place door on vertical wall
             door_index = randint(quadrant_coords[0][0], quadrant_coords[1][0])
-            play_arena[door_index][quadrant_size - 1] = 0
+            play_arena[door_index][arena_size - quadrant_size - 1] = 0
     elif quadrant_loc == 2:
         # create top right quadrant room
         # place vertical wall
-        for i in range(arena_size - 1, quadrant_size - 1, -1):
+        for i in range(arena_size - 1, arena_size - quadrant_size - 1, -1):
             play_arena[i][quadrant_size] = 1
         # place horizontal wall
         for i in range(quadrant_size + 1):
-            play_arena[quadrant_size - 1][i] = 1
+            play_arena[arena_size - quadrant_size - 1][i] = 1
 
         # top left, bottom right
-        quadrant_coords = ((quadrant_size, 0), (arena_size - 1, quadrant_size - 1))
+        quadrant_coords = (
+            (arena_size - quadrant_size, 0),
+            (arena_size - 1, quadrant_size - 1),
+        )
 
         # create doors
         # randomize placement of ONE door
@@ -223,7 +227,7 @@ def quadrant_env(
             # place door on horizontal wall
             if randint(-1, 0) < 0:
                 door_index = randint(quadrant_coords[0][1], quadrant_coords[1][1])
-                play_arena[quadrant_size - 1][door_index] = 0
+                play_arena[arena_size - quadrant_size - 1][door_index] = 0
             # place door on vertical wall
             else:
                 door_index = randint(quadrant_coords[0][0], quadrant_coords[1][0])
@@ -233,7 +237,7 @@ def quadrant_env(
         else:
             # place door on horizontal wall
             door_index = randint(quadrant_coords[0][1], quadrant_coords[1][1])
-            play_arena[quadrant_size - 1][door_index] = 0
+            play_arena[arena_size - quadrant_size - 1][door_index] = 0
 
             # place door on vertical wall
             door_index = randint(quadrant_coords[0][0], quadrant_coords[1][0])
@@ -259,11 +263,11 @@ def quadrant_env(
             # place door on horizontal wall
             if randint(-1, 0) < 0:
                 door_index = randint(quadrant_coords[0][1], quadrant_coords[1][1])
-                play_arena[quadrant_size][door_index] = 0
+                play_arena[quadrant_size - 1][door_index] = 0
             # place door on vertical wall
             else:
                 door_index = randint(quadrant_coords[0][0], quadrant_coords[1][0])
-                play_arena[door_index][quadrant_size] = 0
+                play_arena[door_index][quadrant_size - 1] = 0
 
         # create doors on both walls
         else:
