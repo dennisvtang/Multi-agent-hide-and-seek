@@ -218,7 +218,7 @@ def quadrant_env(
                     <DrawBlock x='{col_index}'  y='{2}' z='{row_index}' type='cobblestone'/>"""
 
 
-    # TODO generate blocks
+    # generate blocks
     if num_blocks != 0:
         block_counter = 0
 
