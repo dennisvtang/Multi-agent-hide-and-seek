@@ -221,17 +221,30 @@ def quadrant_env(
     # TODO generate blocks
     if num_blocks != 0:
         block_counter = 0
+
         while block_counter != num_blocks:
+            #! very lazy way of generating blocks
+            print("block_counter", block_counter)
+
+            block_index = (randint(0, arena_size - 1), randint(0, arena_size - 1))
+            print("block_index", block_index)
+
             # generate blocks ANYWHERE in play area
             if item_gen["blocks_inside"] and item_gen["blocks_outside"]:
-                block_index = (randint(0, arena_size - 1), randint(0, arena_size - 1))
-                print(block_index)
-                # check if block would generate in a wall
-                if play_arena[block_index[0]][block_index[1]] == 1:
+                # todo check if requested number of items will fit in play area
+                # check if block would generate in a wall or another block
+                if (
+                    play_arena[block_index[0]][block_index[1]] == 1
+                    or play_arena[block_index[0]][block_index[1]] == 2
+                ):
                     continue
                 else:
+                    # mark where blocks have been placed
+                    play_arena[block_index[0]][block_index[1]] = 2
+
+                    # place block
                     quadrant_env += f"""
-                    <DrawItem x="{block_index[0]}" y="2" z="{block_index[1]}" type="dirt"/>"""
+                    <DrawItem x="{block_index[1]}" y="2" z="{block_index[0]}" type="dirt"/>"""
 
             # generate blocks only INSIDE quadrant
             elif item_gen["blocks_inside"]:
