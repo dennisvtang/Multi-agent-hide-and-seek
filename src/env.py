@@ -69,7 +69,72 @@ def quadrant_env(
     else:
         quadrant_num_doors = randint(1, 2)
 
-    # 2D map of area agents can walk around
+    # determine if requested number of items is possible to spawn
+    # generate items ANYWHERE
+    if (
+        item_gen["blocks_inside"]
+        and item_gen["blocks_outside"]
+        and item_gen["stairs_inside"]
+        and item_gen["stairs_outside"]
+    ):
+        if (num_blocks + num_stairs) > (arena_size ** 2) - (
+            (quadrant_size + 1) ** 2
+        ) + (quadrant_size ** 2) + quadrant_num_doors:
+            raise ValueError(
+                f"Requested number of items to generate is larger than the space available in the selected area"
+            )
+    # generate items only INSIDE quadrant
+    elif item_gen["blocks_inside"] and item_gen["stairs_inside"]:
+        if (num_blocks + num_stairs) > (quadrant_size ** 2):
+            raise ValueError(
+                f"Requested number of items to generate is larger than the space available in the selected area"
+            )
+    # generate items only OUTSIDE quadrant
+    elif item_gen["blocks_outside"] and item_gen["stairs_outside"]:
+        if (num_blocks + num_stairs) > (arena_size ** 2) - (
+            (quadrant_size + 1) ** 2
+        ) + 2:
+            raise ValueError(
+                f"Requested number of items to generate is larger than the space available in the selected area"
+            )
+    # generate blocks ANYWHERE
+    elif item_gen["blocks_inside"] and item_gen["blocks_outside"]:
+        if num_blocks > (quadrant_size ** 2):
+            raise ValueError(
+                f"Requested number of items to generate is larger than the space available in the selected area"
+            )
+    # generate blocks INSIDE quadrant
+    elif item_gen["blocks_inside"]:
+        if (num_blocks) > (quadrant_size ** 2):
+            raise ValueError(
+                f"Requested number of items to generate is larger than the space available in the selected area"
+            )
+    # generate blocks OUTSIDE quadrant
+    elif item_gen["blocks_outside"]:
+        if num_blocks > (arena_size ** 2) - ((quadrant_size + 1) ** 2) + 2:
+            raise ValueError(
+                f"Requested number of items to generate is larger than the space available in the selected area"
+            )
+    # generate stairs ANYWHERE
+    elif item_gen["stairs_inside"] and item_gen["stairs_outside"]:
+        if num_stairs > (quadrant_size ** 2):
+            raise ValueError(
+                f"Requested number of items to generate is larger than the space available in the selected area"
+            )
+    # generate stairs INSIDE quadrant
+    elif item_gen["stairs_inside"]:
+        if num_stairs > (quadrant_size ** 2):
+            raise ValueError(
+                f"Requested number of items to generate is larger than the space available in the selected area"
+            )
+    # generate stairs OUTSIDE quadrant
+    elif item_gen["stairs_outside"]:
+        if num_stairs > (arena_size ** 2) - ((quadrant_size + 1) ** 2) + 2:
+            raise ValueError(
+                f"Requested number of items to generate is larger than the space available in the selected area"
+            )
+
+    # 2D map of area agents can walk around@
     play_arena = [[0 for _ in range(arena_size)] for _ in range(arena_size)]
 
     # generate quadrant room
@@ -231,7 +296,6 @@ def quadrant_env(
 
             # generate blocks ANYWHERE in play area
             if item_gen["blocks_inside"] and item_gen["blocks_outside"]:
-                # todo check if requested number of items will fit in play area
                 # check if block would generate in a wall or another block
                 if (
                     play_arena[block_index[0]][block_index[1]] == 1
@@ -248,8 +312,6 @@ def quadrant_env(
 
             # generate blocks only INSIDE quadrant
             elif item_gen["blocks_inside"]:
-                # todo check if requested number of items will fit
-
                 # check if block would've generate in a wall or existing block
                 if (
                     play_arena[block_index[0]][block_index[1]] == 1
@@ -292,8 +354,6 @@ def quadrant_env(
 
             # generate blocks only OUTSIDE quadrant
             elif item_gen["blocks_outside"]:
-                # todo check if requested number of items will fit
-
                 # check if block would've generate in a wall or existing block
                 if (
                     play_arena[block_index[0]][block_index[1]] == 1
@@ -346,7 +406,6 @@ def quadrant_env(
 
             # generate stairs ANYWHERE in play area
             if item_gen["stairs_inside"] and item_gen["stairs_outside"]:
-                # todo check if requested number of items will fit in play area
                 # check if stair would generate in a wall or another stair
                 if (
                     play_arena[stair_index[0]][stair_index[1]] == 1
@@ -364,8 +423,6 @@ def quadrant_env(
 
             # generate stairs only INSIDE quadrant
             elif item_gen["stairs_inside"]:
-                # todo check if requested number of items will fit
-
                 # check if stair would've generate in a wall or existing stair
                 if (
                     play_arena[stair_index[0]][stair_index[1]] == 1
@@ -409,8 +466,6 @@ def quadrant_env(
 
             # generate stairs only OUTSIDE quadrant
             elif item_gen["stairs_outside"]:
-                # todo check if requested number of items will fit
-
                 # check if stair would've generate in a wall or existing stair
                 if (
                     play_arena[stair_index[0]][stair_index[1]] == 1
