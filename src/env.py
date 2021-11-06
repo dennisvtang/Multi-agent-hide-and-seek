@@ -282,17 +282,13 @@ def quadrant_env(
                 quadrant_env += f"""
                     <DrawBlock x='{col_index}'  y='{2}' z='{row_index}' type='cobblestone'/>"""
 
-
     # generate blocks
     if num_blocks != 0:
         block_counter = 0
 
         while block_counter != num_blocks:
             #! very lazy way of generating blocks
-            print("block_counter", block_counter)
-
             block_index = (randint(0, arena_size - 1), randint(0, arena_size - 1))
-            print("block_index", block_index)
 
             # generate blocks ANYWHERE in play area
             if item_gen["blocks_inside"] and item_gen["blocks_outside"]:
