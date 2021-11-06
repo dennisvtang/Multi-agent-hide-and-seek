@@ -290,6 +290,49 @@ def quadrant_env(
                     quadrant_env += f"""
                     <DrawItem x="{block_index[1]}" y="2" z="{block_index[0]}" type="dirt"/>"""
 
+            # generate blocks only OUTSIDE quadrant
+            elif item_gen["blocks_outside"]:
+                # todo check if requested number of items will fit
+
+                # check if block would've generate in a wall or existing block
+                if (
+                    play_arena[block_index[0]][block_index[1]] == 1
+                    or play_arena[block_index[0]][block_index[1]] == 2
+                ):
+                    continue
+                else:
+                    # check if block would've generate INSIDE quadrant
+                    if quadrant_loc == 0:
+                        if not (
+                            block_index[0] > quadrant_coords[1][0]
+                            or block_index[1] > quadrant_coords[1][1]
+                        ):
+                            continue
+                    elif quadrant_loc == 1:
+                        if not (
+                            block_index[0] > quadrant_coords[1][0]
+                            or block_index[1] < quadrant_coords[0][1]
+                        ):
+                            continue
+                    elif quadrant_loc == 2:
+                        if not (
+                            block_index[0] < quadrant_coords[0][0]
+                            or block_index[1] > quadrant_coords[1][1]
+                        ):
+                            continue
+                    elif quadrant_loc == 3:
+                        if not (
+                            block_index[0] < quadrant_coords[0][0]
+                            or block_index[1] < quadrant_coords[0][1]
+                        ):
+                            continue
+
+                    # mark where blocks have been placed
+                    play_arena[block_index[0]][block_index[1]] = 2
+
+                    # place blocks
+                    quadrant_env += f"""
+                    <DrawItem x="{block_index[1]}" y="2" z="{block_index[0]}" type="dirt"/>"""
 
             block_counter += 1
 
