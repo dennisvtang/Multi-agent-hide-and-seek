@@ -336,25 +336,121 @@ def quadrant_env(
 
             block_counter += 1
 
-    # TODO generate stairs
+    # generate stairs
     if num_stairs != 0:
         stair_counter = 0
+
         while stair_counter != num_stairs:
+            #! very lazy way of generating stairs
+            stair_index = (randint(0, arena_size - 1), randint(0, arena_size - 1))
+
             # generate stairs ANYWHERE in play area
             if item_gen["stairs_inside"] and item_gen["stairs_outside"]:
-                stair_index = (randint(0, arena_size - 1), randint(0, arena_size - 1))
-                # check if block would generate in a wall
-                if play_arena[stair_index[0]][stair_index[1]] == 1:
+                # todo check if requested number of items will fit in play area
+                # check if stair would generate in a wall or another stair
+                if (
+                    play_arena[stair_index[0]][stair_index[1]] == 1
+                    or play_arena[stair_index[0]][stair_index[1]] == 2
+                    or play_arena[stair_index[0]][stair_index[1]] == 3
+                ):
                     continue
                 else:
+                    # mark where stairs have been placed
+                    play_arena[stair_index[0]][stair_index[1]] = 3
+
+                    # place stair
                     quadrant_env += f"""
-                    <DrawItem x="{stair_index[0]}" y="2" z="{stair_index[1]}" type="oak_stairs"/>"""
-            # generate blocks only INSIDE quadrant
+                    <DrawItem x="{stair_index[1]}" y="2" z="{stair_index[0]}" type="oak_stairs"/>"""
+
+            # generate stairs only INSIDE quadrant
             elif item_gen["stairs_inside"]:
-                pass
-            # generate blocks only OUTSIDE quadrant
-            elif item_gen["blocks_oustide"]:
-                pass
+                # todo check if requested number of items will fit
+
+                # check if stair would've generate in a wall or existing stair
+                if (
+                    play_arena[stair_index[0]][stair_index[1]] == 1
+                    or play_arena[stair_index[0]][stair_index[1]] == 2
+                    or play_arena[stair_index[0]][stair_index[1]] == 3
+                ):
+                    continue
+                else:
+                    # check if stair would've generate OUTSIDE quadrant
+                    if quadrant_loc == 0:
+                        if (
+                            stair_index[0] > quadrant_coords[1][0]
+                            or stair_index[1] > quadrant_coords[1][1]
+                        ):
+                            continue
+                    elif quadrant_loc == 1:
+                        if (
+                            stair_index[0] > quadrant_coords[1][0]
+                            or stair_index[1] < quadrant_coords[0][1]
+                        ):
+                            continue
+                    elif quadrant_loc == 2:
+                        if (
+                            stair_index[0] < quadrant_coords[0][0]
+                            or stair_index[1] > quadrant_coords[1][1]
+                        ):
+                            continue
+                    elif quadrant_loc == 3:
+                        if (
+                            stair_index[0] < quadrant_coords[0][0]
+                            or stair_index[1] < quadrant_coords[0][1]
+                        ):
+                            continue
+
+                    # mark where stairs have been placed
+                    play_arena[stair_index[0]][stair_index[1]] = 3
+
+                    # place stairs
+                    quadrant_env += f"""
+                    <DrawItem x="{stair_index[1]}" y="2" z="{stair_index[0]}" type="oak_stairs"/>"""
+
+            # generate stairs only OUTSIDE quadrant
+            elif item_gen["stairs_outside"]:
+                # todo check if requested number of items will fit
+
+                # check if stair would've generate in a wall or existing stair
+                if (
+                    play_arena[stair_index[0]][stair_index[1]] == 1
+                    or play_arena[stair_index[0]][stair_index[1]] == 2
+                    or play_arena[stair_index[0]][stair_index[1]] == 3
+                ):
+                    continue
+                else:
+                    # check if stair would've generate INSIDE quadrant
+                    if quadrant_loc == 0:
+                        if not (
+                            stair_index[0] > quadrant_coords[1][0]
+                            or stair_index[1] > quadrant_coords[1][1]
+                        ):
+                            continue
+                    elif quadrant_loc == 1:
+                        if not (
+                            stair_index[0] > quadrant_coords[1][0]
+                            or stair_index[1] < quadrant_coords[0][1]
+                        ):
+                            continue
+                    elif quadrant_loc == 2:
+                        if not (
+                            stair_index[0] < quadrant_coords[0][0]
+                            or stair_index[1] > quadrant_coords[1][1]
+                        ):
+                            continue
+                    elif quadrant_loc == 3:
+                        if not (
+                            stair_index[0] < quadrant_coords[0][0]
+                            or stair_index[1] < quadrant_coords[0][1]
+                        ):
+                            continue
+
+                    # mark where stairs have been placed
+                    play_arena[stair_index[0]][stair_index[1]] = 3
+
+                    # place stairs
+                    quadrant_env += f"""
+                    <DrawItem x="{stair_index[1]}" y="2" z="{stair_index[0]}" type="oak_stairs"/>"""
 
             stair_counter += 1
 
