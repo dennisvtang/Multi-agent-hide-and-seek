@@ -126,15 +126,17 @@ while True:
         is_closed_arena=True,
         env_type="quadrant",
         item_gen={
-            "blocks_inside": True,
+            "blocks_inside": False,
             "blocks_outside": True,
-            "stairs_inside": True,
+            "stairs_inside": False,
             "stairs_outside": True,
         },
         num_blocks=5,
         num_stairs=3,
-        quadrant_loc=3,
-        quadrant_num_doors=2,
+        # quadrant_loc=3,
+        # quadrant_size=3,
+        # quadrant_size=7,
+        # quadrant_num_doors=2,
     )
     print(mission_xml)
     my_mission = MalmoPython.MissionSpec(mission_xml, True)
