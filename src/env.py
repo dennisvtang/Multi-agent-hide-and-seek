@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, choice
 from typing import Dict
 
 
@@ -69,6 +69,13 @@ def quadrant_env(
     else:
         quadrant_num_doors = randint(1, 2)
 
+    # todo make item_gen optional
+    # todo allow choosing only some?
+    # item_gen = dict(zip(item_gen, [choice([True, False]) for _ in range(4)]))
+
+    # todo make num_blocks and num_stairs optional
+    # todo make num_blocks accept ranges
+    # todo make num_stairs accept ranges
     # determine if requested number of items is possible to spawn
     # generate items ANYWHERE
     if (
