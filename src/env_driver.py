@@ -138,7 +138,7 @@ while True:
         # quadrant_size=7,
         # quadrant_num_doors=2,
     )
-    print(mission_xml)
+
     my_mission = MalmoPython.MissionSpec(mission_xml, True)
     my_mission_record = MalmoPython.MissionRecordSpec()
 
