@@ -140,12 +140,12 @@ def quadrant_env(
     # generate quadrant room
     if quadrant_loc == 0:
         # create top left quadrant room
-        # place vertical wall
-        for i in range(quadrant_size + 1):
-            play_arena[i][quadrant_size] = 1
         # place horizontal wall
         for i in range(quadrant_size + 1):
             play_arena[quadrant_size][i] = 1
+        # place vertical wall
+        for i in range(quadrant_size + 1):
+            play_arena[i][quadrant_size] = 1
 
         # top left, bottom right
         quadrant_coords = ((0, 0), (quadrant_size - 1, quadrant_size - 1))
@@ -172,12 +172,12 @@ def quadrant_env(
             play_arena[door_index][quadrant_size] = 0
     elif quadrant_loc == 1:
         # create top right quadrant room
-        # place vertical wall
-        for i in range(quadrant_size + 1):
-            play_arena[i][arena_size - quadrant_size - 1] = 1
         # place horizontal wall
         for i in range(arena_size - 1, arena_size - quadrant_size - 1, -1):
             play_arena[quadrant_size][i] = 1
+        # place vertical wall
+        for i in range(quadrant_size + 1):
+            play_arena[i][arena_size - quadrant_size - 1] = 1
 
         # top left, bottom right
         quadrant_coords = (
@@ -208,12 +208,12 @@ def quadrant_env(
             play_arena[door_index][arena_size - quadrant_size - 1] = 0
     elif quadrant_loc == 2:
         # create top right quadrant room
-        # place vertical wall
-        for i in range(arena_size - 1, arena_size - quadrant_size - 1, -1):
-            play_arena[i][quadrant_size] = 1
         # place horizontal wall
         for i in range(quadrant_size + 1):
             play_arena[arena_size - quadrant_size - 1][i] = 1
+        # place vertical wall
+        for i in range(arena_size - 1, arena_size - quadrant_size - 1, -1):
+            play_arena[i][quadrant_size] = 1
 
         # top left, bottom right
         quadrant_coords = (
@@ -244,12 +244,12 @@ def quadrant_env(
             play_arena[door_index][quadrant_size] = 0
     elif quadrant_loc == 3:
         # create top right quadrant room
-        # place vertical wall
-        for i in range(arena_size - 1, quadrant_size - 2, -1):
-            play_arena[i][quadrant_size - 1] = 1
         # place horizontal wall
         for i in range(arena_size - 1, quadrant_size - 2, -1):
             play_arena[quadrant_size - 1][i] = 1
+        # place vertical wall
+        for i in range(arena_size - 1, quadrant_size - 2, -1):
+            play_arena[i][quadrant_size - 1] = 1
 
         # top left, bottom right
         quadrant_coords = (
