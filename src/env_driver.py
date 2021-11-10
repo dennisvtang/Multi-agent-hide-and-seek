@@ -60,6 +60,17 @@ def gen_mission_xml(
          str: A formated Malmo mission XML string with the requested settings.
     """
 
+    # generate environment and map for environment (doesn't include outer walls)
+    env, env_map = create_env(
+        arena_size,
+        is_closed_arena,
+        env_type,
+        item_gen,
+        num_blocks,
+        num_stairs,
+        **kwargs,
+    )
+
     mission_string = f""
 
     # add boiler plate stuff
@@ -81,7 +92,7 @@ def gen_mission_xml(
                 <Weather>clear</Weather>
             </ServerInitialConditions>"""
 
-    mission_string += f"""{create_env(arena_size, is_closed_arena, env_type, item_gen, num_blocks, num_stairs, **kwargs)}"""
+    mission_string += f"""{env}"""
 
     # add quit condition
     mission_string += f"""

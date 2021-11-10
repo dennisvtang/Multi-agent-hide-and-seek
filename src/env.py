@@ -516,7 +516,7 @@ def gen_quadrant_env(
 
             stair_counter += 1
 
-    return quadrant_env
+    return (quadrant_env, play_arena)
 
 
 def create_env(
@@ -584,13 +584,14 @@ def create_env(
 
     # generate environment
     if env_type == "quadrant":
-        env += gen_quadrant_env(
+        quadrant_env, env_map = gen_quadrant_env(
             arena_size=arena_size,
             item_gen=item_gen,
             num_blocks=num_blocks,
             num_stairs=num_stairs,
             **kwargs,
         )
+        env += quadrant_env
     elif env_type == "sequential":
         pass
     elif env_type == "parallel":
@@ -601,7 +602,7 @@ def create_env(
     env += """
                 </DrawingDecorator>"""
 
-    return env
+    return (env, env_map)
 
 
 if __name__ == "__main__":
