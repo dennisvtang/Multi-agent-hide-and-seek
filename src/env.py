@@ -2,7 +2,7 @@ from random import randint, choice
 from typing import Dict
 
 
-def quadrant_env(
+def gen_quadrant_env(
     arena_size: int,
     item_gen: Dict[str, bool],
     num_blocks: int,
@@ -584,7 +584,7 @@ def create_env(
 
     # generate environment
     if env_type == "quadrant":
-        env += quadrant_env(
+        env += gen_quadrant_env(
             arena_size=arena_size,
             item_gen=item_gen,
             num_blocks=num_blocks,
