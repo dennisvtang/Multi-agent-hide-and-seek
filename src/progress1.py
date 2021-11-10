@@ -1,5 +1,5 @@
 from env import create_env
-
+from typing import Dict
 
 class HideAndSeekMission(gym.Env):
     def __init__(self, env_config):
