@@ -291,7 +291,8 @@ def gen_quadrant_env(
         for col_index in range(len(play_arena)):
             if play_arena[row_index][col_index] == 1:
                 quadrant_env += f"""
-                    <DrawBlock x='{col_index}'  y='{2}' z='{row_index}' type='cobblestone'/>"""
+                    <DrawBlock x='{col_index}'  y='{2}' z='{row_index}' type='cobblestone'/>
+                    <DrawBlock x='{col_index}'  y='{3}' z='{row_index}' type='cobblestone'/>"""
 
     # generate blocks
     if num_blocks != 0:
