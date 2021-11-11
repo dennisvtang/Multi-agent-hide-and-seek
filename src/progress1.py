@@ -21,7 +21,7 @@ class HideAndSeekMission(gym.Env):
         self.obs_size = 5
         self.num_agents = 2
         self.agent_hosts = [MalmoPython.AgentHost()]
-        self.agent_hosts += [MalmoPython.AgentHost() for x in range(1, self.num_agents + 1)]
+        self.agent_hosts += [MalmoPython.AgentHost() for _ in range(1, self.num_agents + 1)]
         ### END              ###
         pass
     
@@ -48,7 +48,7 @@ class HideAndSeekMission(gym.Env):
             info: <dict> dictionary of extra information
         """
 
-
+        ## placeholder code
         for i in range(self.num_agents):
             commands = [
                 'move ' + str(action[0]),
@@ -146,18 +146,17 @@ class HideAndSeekMission(gym.Env):
 
         # set up agents
         for i in range(self.num_agents):
-
             # randomize agent starting position
             pos_x = random.randint(0, arena_size)
-            pos_y = random.randint(0, arena_size)
-            while env_map[pos_y][pos_x] != 0:
+            pos_z = random.randint(0, arena_size)
+            while env_map[pos_z][pos_x] != 0:
                 pos_x = random.randint(0, arena_size)
-                pos_y = random.randint(0, arena_size)
+                pos_z = random.randint(0, arena_size)
 
             mission_string += f"""<AgentSection mode="Survival">
                 <Name>"Seeker {str(i)}"</Name>
                 <AgentStart>
-                    <Placement x="{str(pos_x)}" y="2" z="{str(pos_y)}"/>
+                    <Placement x="{str(pos_x)}" y="2" z="{str(pos_z)}"/>
                 </AgentStart>
                 <AgentHandlers>
                     <ContinuousMovementCommands turnSpeedDegs="360"/>
