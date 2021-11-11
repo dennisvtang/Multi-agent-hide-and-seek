@@ -1,5 +1,14 @@
+try:
+    from malmo import MalmoPython
+except:
+    import MalmoPython
 from env import create_env
+from multi_agent_helper import safeStartMission, safeWaitForStart
 from typing import Dict
+import time
+import uuid
+import random
+
 
 class HideAndSeekMission(gym.Env):
     def __init__(self, env_config):
@@ -11,6 +20,8 @@ class HideAndSeekMission(gym.Env):
         ### Agent Parameters ###
         self.obs_size = 5
         self.num_agents = 2
+        self.agent_hosts = [MalmoPython.AgentHost()]
+        self.agent_hosts += [MalmoPython.AgentHost() for x in range(1, self.num_agents + 1)]
         ### END              ###
         pass
     
@@ -36,9 +47,22 @@ class HideAndSeekMission(gym.Env):
             done: <bool> indicates terminal state
             info: <dict> dictionary of extra information
         """
-        pass
 
-    def gen_mission_xml(
+
+        for i in range(self.num_agents):
+            commands = [
+                'move ' + str(action[0]),
+                'turn ' + str(action[1]),
+            ]
+            for command in commands:
+                self.agent_hosts[i].sendCommand(command)
+                time.sleep(.2)
+
+            world_state = self.agent_hosts[i].getWorldState()
+            for error in world_state.errors:
+                print("Error:", error.text)
+
+    def gen_mission_xml(self,
         arena_size: int,
         is_closed_arena: bool,
         env_type: str,
@@ -120,6 +144,34 @@ class HideAndSeekMission(gym.Env):
                 </ServerHandlers>
             </ServerSection>"""
 
+        # set up agents
+        for i in range(self.num_agents):
+
+            # randomize agent starting position
+            pos_x = random.randint(0, arena_size)
+            pos_y = random.randint(0, arena_size)
+            while env_map[pos_y][pos_x] != 0:
+                pos_x = random.randint(0, arena_size)
+                pos_y = random.randint(0, arena_size)
+
+            mission_string += f"""<AgentSection mode="Survival">
+                <Name>"Seeker {str(i)}"</Name>
+                <AgentStart>
+                    <Placement x="{str(pos_x)}" y="2" z="{str(pos_y)}"/>
+                </AgentStart>
+                <AgentHandlers>
+                    <ContinuousMovementCommands turnSpeedDegs="360"/>
+                    <ObservationFromRay/>
+                    <ObservationFromFullStats/>
+                    <ObservationFromGrid>
+                        <Grid name="floorAll">
+                        <min x="-{str(int(self.obs_size/2))}" y="-1" z="-{str(int(self.obs_size/2))}"/>
+                        <max x="{str(int(self.obs_size/2))}" y="0" z="{str(int(self.obs_size/2))}"/>
+                        </Grid>
+                    </ObservationFromGrid>
+                </AgentHandlers>
+            </AgentSection>"""
+
         # setup agent as observer
         mission_string += f"""
             <AgentSection mode="Spectator">
@@ -135,3 +187,36 @@ class HideAndSeekMission(gym.Env):
         </Mission>"""
 
         return mission_string
+
+    def init_malmo(self):
+        """
+        Initialize new malmo mission.
+        """
+        my_mission = MalmoPython.MissionSpec(self.get_mission_xml(), True)
+        my_mission_record = MalmoPython.MissionRecordSpec()
+        my_mission.requestVideo(800, 500)
+        my_mission.setViewpoint(1)
+
+        client_pool = MalmoPython.ClientPool()
+        for port in range(10000, 10000 + self.num_agents + 1):
+            client_pool.add(MalmoPython.ClientInfo('127.0.0.1', port))
+
+        experimentID = str(uuid.uuid4())
+
+        for i in range(len(self.agent_hosts)):
+            safeStartMission(self.agent_hosts[i], my_mission, client_pool, MalmoPython.MissionRecordSpec(), i, experimentID)
+
+        safeWaitForStart(self.agent_hosts)
+        time.sleep(1)
+
+        world_states = []
+        for agent_host in self.agent_hosts:
+            world_state = agent_host.getWorldState()
+            while not world_state.has_mission_begun:
+                time.sleep(0.1)
+                world_state = agent_host.getWorldState()
+                for error in world_state.errors:
+                    print("\nError:", error.text)
+            world_states.append(world_state)
+
+        return world_states
