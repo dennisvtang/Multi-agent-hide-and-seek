@@ -7,23 +7,41 @@ from multi_agent_helper import safeStartMission, safeWaitForStart
 from typing import Dict
 import time
 import uuid
+import json
+import numpy as np
 import random
+
+import gym
+from gym.spaces import Box, Dict
+
+### TARGET RL ALGORITHM: Soft Actor Critic ###
+from stable_baselines3 import SAC
 
 
 class HideAndSeekMission(gym.Env):
     def __init__(self, env_config):
-        ### Mission Parameters ###
-        self.mission_xml = None #Use external arena generator for mission_xml
-        ### END                ###
-
+        ### Arena Parameters ###
+        self.arena_size = 0
+        self.closed_arena = True
+        self.env_type = "quadrant"
+        self.gen_num_blocks = 0
+        self.gen_num_stairs = 0
 
         ### Agent Parameters ###
         self.obs_size = 5
         self.num_agents = 2
+        self.max_episode_steps = 150
         self.agent_hosts = [MalmoPython.AgentHost()]
         self.agent_hosts += [MalmoPython.AgentHost() for _ in range(1, self.num_agents + 1)]
-        ### END              ###
-        pass
+
+        ### Misc Parameters ###
+        self.log_frequency = 2
+
+        ### Malmo Mission State ###
+        self.client_pool = None
+        self.mission = None
+        self.mission_record = None
+        self.agents = []
     
     def reset(self):
         """
@@ -32,7 +50,23 @@ class HideAndSeekMission(gym.Env):
         Returns
             observation: <np.array> flattened initial obseravtion
         """
-        pass
+        world_state = self.init_malmo()
+
+        self.returns.append(self.episode_return)
+        current_step = self.steps[-1] if len(self.steps) > 0 else 0
+        self.steps.append(current_step + self.episode_step)
+        self.episode_return = 0
+        self.episode_step = 0
+
+        if len(self.returns) > self.log_frequency + 1 and \
+            len(self.returns) % self.log_frequency == 0:
+            print("Logging returns...")
+            self.log_returns()
+
+        #Get Observation for each agent
+        self.obs = [agent.get_observation(world_state) for agent in self.agent_hosts]
+
+        return self.obs
 
     def step(self, action):
         """
@@ -48,6 +82,10 @@ class HideAndSeekMission(gym.Env):
             info: <dict> dictionary of extra information
         """
 
+        obs = None
+        reward = None
+        done = False
+
         ## placeholder code
         for i in range(self.num_agents):
             commands = [
@@ -61,6 +99,9 @@ class HideAndSeekMission(gym.Env):
             world_state = self.agent_hosts[i].getWorldState()
             for error in world_state.errors:
                 print("Error:", error.text)
+        
+        return self.obs, reward, done, dict()
+        
 
     def gen_mission_xml(self,
         arena_size: int,
@@ -219,3 +260,45 @@ class HideAndSeekMission(gym.Env):
             world_states.append(world_state)
 
         return world_states
+
+class PlayerAgent:
+
+    def __init__(self, obs_size):
+        self.obs_size = obs_size
+        self.action_space = Box(np.array([-1,-1,-1]), np.array([1,1,1]))
+        self.observation_space = Dict({
+            "yaw":Box(-360, 360, shape=(1, ), dtype = np.float32),
+            "grid":Box(0, 1, shape=(2 * self.obs_size * self.obs_size, ), dtype=np.float32)}
+        )
+        self.obs = None
+        self.allow_tag = False
+
+        ### Logging information ###
+        self.timestamp = time.time()
+        self.episode_step = 0
+        self.episode_return = 0
+        self.returns = []
+        self.steps = []
+
+        ### Agent Host initialization ###
+        self.agent_host = MalmoPython.AgentHost()
+    
+    def get_observation(self, world_state):
+        obs = {"yaw":np.zeros((1,)), "grid":np.zeros((2 * self.obs_size * self.obs_size, ))}
+        while world_state.is_mission_running:
+            time.sleep(0.1)
+            world_state = self.agent_host.getWorldState()
+            if len(world_state.errors) > 0:
+                raise AssertionError('Could not load grid.')
+
+            if world_state.number_of_observations_since_last_state > 0:
+                msg = world_state.observations[-1].text
+                observations = json.loads(msg)
+
+                grid = observations['floorAll']
+                for i, x in enumerate(grid):
+                    obs["grid"][i] = x == 'cobblestone' or x == "stone_brick"
+                obs["yaw"] = np.array([observations['Yaw']])                
+                break
+
+        return obs, False
