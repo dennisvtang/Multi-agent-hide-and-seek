@@ -1,27 +1,81 @@
+import numpy as np
+import random
+import time
+import uuid
+import json
+
+import gym
+
 try:
     from malmo import MalmoPython
 except:
     import MalmoPython
+from gym.spaces import Box, Dict
+from gym.vector.utils import batch_space
+from stable_baselines3 import A2C, SAC
+from stable_baselines3.common.vec_env import DummyVecEnv
+import supersuit as ss
+
 from env import create_env
 from multi_agent_helper import safeStartMission, safeWaitForStart
-from typing import Dict
-import time
-import uuid
-import json
-import numpy as np
-import random
 
-import gym
-from gym.spaces import Box, Dict
+class SingleAgentEnv(gym.Env):
 
-### TARGET RL ALGORITHM: Soft Actor Critic ###
-from stable_baselines3 import SAC
+    def __init__(self, agent_id, obs_size):
+        ### Env Parameters ###
+        self.obs_size = obs_size
+        self.agent_id = agent_id
+        self.action_space = Box(-1,1, shape = (2,), dtype=np.float32)
+        self.observation_space = Box(-360, 360, shape = (2 * self.obs_size * self.obs_size + 1,), dtype=np.float32)
+
+        ### Malmo Parameters ###
+        self.agent_host = MalmoPython.AgentHost()
+    
+    def reset(self):
+        return self.get_observation()
+    
+    def step(self, action):
+        reward = 0
+        info = {}
+        obs = np.zeros((2 * self.obs_size * self.obs_size + 1), dtype = np.float32)
+
+        self.execute_malmo_action(action)
+        world_state = self.agent_host.getWorldState()
+        if not world_state.is_mission_running:
+            return obs, reward, True, info
+        for r in world_state.rewards:
+            reward += r.getValue()
+        obs = self.get_observation()
+        return obs, reward, False, info
+    
+    def get_observation(self):
+        obs = np.zeros((2 * self.obs_size * self.obs_size + 1), dtype = np.float32)
+        while self.agent_host.getWorldState().is_mission_running:
+            time.sleep(0.1)
+            world_state = self.agent_host.getWorldState(0)
+            
+            if world_state.number_of_observations_since_last_state > 0:
+                malmo_obs = json.loads(world_state.observations[-1].text)
+                obs[0] = malmo_obs["Yaw"]
+                grid = malmo_obs['floorAll']
+                for i, x in enumerate(grid):
+                    obs[i+1] = x == 'cobblestone' or x == "stone_brick"
+                break
+        return obs
+    
+    def execute_malmo_action(self, action):
+        self.agent_host.sendCommand(f"move {action[0]}")
+        self.agent_host.sendCommand(f"turn {action[1]}")
+        time.sleep(1)
 
 
 class HideAndSeekMission(gym.Env):
-    def __init__(self, env_config):
+
+    metadata = {'render.modes': ['human'], "name": "HideAndSeek"}
+
+    def __init__(self):
         ### Arena Parameters ###
-        self.arena_size = 0
+        self.arena_size = 10
         self.closed_arena = True
         self.env_type = "quadrant"
         self.gen_num_blocks = 0
@@ -29,85 +83,84 @@ class HideAndSeekMission(gym.Env):
 
         ### Agent Parameters ###
         self.obs_size = 5
-        self.num_agents = 2
-        self.max_episode_steps = 150
-        self.agent_hosts = [MalmoPython.AgentHost()]
-        self.agent_hosts += [MalmoPython.AgentHost() for _ in range(1, self.num_agents + 1)]
+        self.num_hiders = 1
+        assert self.num_hiders > 0, "hiders are mandatory"
+        self.num_seekers = 1        
 
-        ### Misc Parameters ###
-        self.log_frequency = 2
+        ### Vector Env State ###
+        self.is_vector_env = True
+        self.num_envs = self.num_hiders + self.num_seekers
+        self.possible_agents = [f"hider_{x}"for x in range(self.num_hiders)] + [f"seeker_{x}" for x in range(self.num_seekers)]
+        self.agent_envs = {key:SingleAgentEnv(key, self.obs_size) for key in self.possible_agents}
+        self.action_space = batch_space(self.agent_envs["hider_0"].observation_space, n = len(self.possible_agents))
+        self.observation_space = batch_space(Box(-360, 360, shape = (2 * self.obs_size * self.obs_size + 1,), dtype=np.float32), n = len(self.possible_agents))
 
-        ### Malmo Mission State ###
-        self.client_pool = None
-        self.mission = None
-        self.mission_record = None
-        self.agents = []
+        ### Malmo State ###
+        self.malmo_agents = {key : self.agent_envs[key].agent_host for key in self.possible_agents}
+        self.malmo_agents["Observer"] = MalmoPython.AgentHost()
     
     def reset(self):
-        """
-        Resets the environment for the next episode.
+        '''
+        Resets the environment to a starting state.
+        '''
+        self.agents = self.possible_agents[:]
+        self.init_malmo()
+        observations = {agent : self.agent_envs[agent].reset() for agent in self.agents}
+        return observations
+    
+    def step(self, actions):
+        '''
+        Receives a dictionary of actions keyed by the agent name.
+        Returns the observation dictionary, reward dictionary, done dictionary, and info dictionary,
+        where each dictionary is keyed by the agent.
+        '''
 
-        Returns
-            observation: <np.array> flattened initial obseravtion
-        """
-        world_state = self.init_malmo()
+        rewards = {agent : 0 for agent in self.agents}
+        dones = {agent: False for agent in self.agents}
+        infos = {agent : {} for agent in self.agents}
+        observations = {agent : None for agent in self.agents}
 
-        self.returns.append(self.episode_return)
-        current_step = self.steps[-1] if len(self.steps) > 0 else 0
-        self.steps.append(current_step + self.episode_step)
-        self.episode_return = 0
-        self.episode_step = 0
+        for i, agent in enumerate(self.agents):        
+            curr_obs, curr_reward, done, info = self.agent_envs[agent].step(actions[i])
+            self.rewards[agent] = curr_reward
+            observations[agent] = curr_obs
+            dones[agent] = done
+            infos[agent] = info
+        return observations, rewards, dones, infos
 
-        if len(self.returns) > self.log_frequency + 1 and \
-            len(self.returns) % self.log_frequency == 0:
-            print("Logging returns...")
-            self.log_returns()
+    def init_malmo(self):
+        my_mission = MalmoPython.MissionSpec(
+            self.gen_mission_xml(
+                self.arena_size,
+                self.closed_arena,
+                self.env_type,
+                {
+                    "blocks_inside": False,
+                    "blocks_outside": True,
+                    "stairs_inside": False,
+                    "stairs_outside": True,
+                }, 0, 0), True)
+        my_mission_record = MalmoPython.MissionRecordSpec()
+        my_mission.requestVideo(800, 500)
+        my_mission.setViewpoint(1)
 
-        #Get Observation for each agent
-        self.obs = [agent.get_observation(world_state) for agent in self.agent_hosts]
+        client_pool = MalmoPython.ClientPool()
+        for port in range(10000, 10000 + self.num_seekers + self.num_hiders + 1):
+            client_pool.add(MalmoPython.ClientInfo('127.0.0.1', port))
 
-        return self.obs
+        experimentID = str(uuid.uuid4())
+        agent_hosts = self.malmo_agents
+        for agent_id, agent in enumerate(agent_hosts.keys()):
+            safeStartMission(agent_hosts[agent], my_mission, client_pool, MalmoPython.MissionRecordSpec(), agent_id, experimentID)
 
-    def step(self, action):
-        """
-        Take an action in the environment and return the results.
-
-        Args
-            action: vector of actions taken from RL agent
-
-        Returns
-            observation: <np.array> flattened array of obseravtion
-            reward: <int> reward from taking action
-            done: <bool> indicates terminal state
-            info: <dict> dictionary of extra information
-        """
-
-        obs = None
-        reward = None
-        done = False
-
-        ## placeholder code
-        for i in range(self.num_agents):
-            commands = [
-                'move ' + str(action[0]),
-                'turn ' + str(action[1]),
-            ]
-            for command in commands:
-                self.agent_hosts[i].sendCommand(command)
-                time.sleep(.2)
-
-            world_state = self.agent_hosts[i].getWorldState()
-            for error in world_state.errors:
-                print("Error:", error.text)
-        
-        return self.obs, reward, done, dict()
-        
+        safeWaitForStart(agent_hosts.values())
+        time.sleep(1)
 
     def gen_mission_xml(self,
         arena_size: int,
         is_closed_arena: bool,
         env_type: str,
-        item_gen: Dict[str, bool],
+        item_gen,
         num_blocks: int,
         num_stairs: int,
         **kwargs,
@@ -186,23 +239,20 @@ class HideAndSeekMission(gym.Env):
             </ServerSection>"""
 
         # set up agents
-        for i in range(self.num_agents):
+        for i in range(self.num_hiders + self.num_seekers):
             # randomize agent starting position
-            pos_x = random.randint(0, arena_size)
-            pos_z = random.randint(0, arena_size)
-            while env_map[pos_z][pos_x] != 0:
-                pos_x = random.randint(0, arena_size)
-                pos_z = random.randint(0, arena_size)
-
             mission_string += f"""<AgentSection mode="Survival">
-                <Name>"Seeker {str(i)}"</Name>
+                <Name>{self.possible_agents[i]}</Name>
                 <AgentStart>
-                    <Placement x="{str(pos_x)}" y="2" z="{str(pos_z)}"/>
+                    <Placement x="{str(random.randint(0, arena_size))}" y="2" z="{str(random.randint(0, arena_size))}"/>
                 </AgentStart>
                 <AgentHandlers>
+                    <RewardForCollectingItem>
+                        <Item type="apple" reward="1"/>
+                    </RewardForCollectingItem>
+                    <ObservationFromFullStats/>
                     <ContinuousMovementCommands turnSpeedDegs="360"/>
                     <ObservationFromRay/>
-                    <ObservationFromFullStats/>
                     <ObservationFromGrid>
                         <Grid name="floorAll">
                         <min x="-{str(int(self.obs_size/2))}" y="-1" z="-{str(int(self.obs_size/2))}"/>
@@ -220,7 +270,6 @@ class HideAndSeekMission(gym.Env):
                     <Placement x="{arena_size/2}" y="{10 + (arena_size//3)}" z="{arena_size/2}" pitch="90" yaw="180"/>
                 </AgentStart>
                 <AgentHandlers>
-                    <ObservationFromFullStats/>
                     <ContinuousMovementCommands turnSpeedDegs="180"/>
                 </AgentHandlers>
             </AgentSection>
@@ -228,77 +277,16 @@ class HideAndSeekMission(gym.Env):
 
         return mission_string
 
-    def init_malmo(self):
-        """
-        Initialize new malmo mission.
-        """
-        my_mission = MalmoPython.MissionSpec(self.get_mission_xml(), True)
-        my_mission_record = MalmoPython.MissionRecordSpec()
-        my_mission.requestVideo(800, 500)
-        my_mission.setViewpoint(1)
+def wrap_env():
+    env = HideAndSeekMission()
+    # env = ss.pad_action_space_v0(env)
+    # env = ss.pad_observations_v0(env)
+    #env = ss.gym_vec_env_v0(env, env.num_envs)
+    return env
 
-        client_pool = MalmoPython.ClientPool()
-        for port in range(10000, 10000 + self.num_agents + 1):
-            client_pool.add(MalmoPython.ClientInfo('127.0.0.1', port))
-
-        experimentID = str(uuid.uuid4())
-
-        for i in range(len(self.agent_hosts)):
-            safeStartMission(self.agent_hosts[i], my_mission, client_pool, MalmoPython.MissionRecordSpec(), i, experimentID)
-
-        safeWaitForStart(self.agent_hosts)
-        time.sleep(1)
-
-        world_states = []
-        for agent_host in self.agent_hosts:
-            world_state = agent_host.getWorldState()
-            while not world_state.has_mission_begun:
-                time.sleep(0.1)
-                world_state = agent_host.getWorldState()
-                for error in world_state.errors:
-                    print("\nError:", error.text)
-            world_states.append(world_state)
-
-        return world_states
-
-class PlayerAgent:
-
-    def __init__(self, obs_size):
-        self.obs_size = obs_size
-        self.action_space = Box(np.array([-1,-1,-1]), np.array([1,1,1]))
-        self.observation_space = Dict({
-            "yaw":Box(-360, 360, shape=(1, ), dtype = np.float32),
-            "grid":Box(0, 1, shape=(2 * self.obs_size * self.obs_size, ), dtype=np.float32)}
-        )
-        self.obs = None
-        self.allow_tag = False
-
-        ### Logging information ###
-        self.timestamp = time.time()
-        self.episode_step = 0
-        self.episode_return = 0
-        self.returns = []
-        self.steps = []
-
-        ### Agent Host initialization ###
-        self.agent_host = MalmoPython.AgentHost()
-    
-    def get_observation(self, world_state):
-        obs = {"yaw":np.zeros((1,)), "grid":np.zeros((2 * self.obs_size * self.obs_size, ))}
-        while world_state.is_mission_running:
-            time.sleep(0.1)
-            world_state = self.agent_host.getWorldState()
-            if len(world_state.errors) > 0:
-                raise AssertionError('Could not load grid.')
-
-            if world_state.number_of_observations_since_last_state > 0:
-                msg = world_state.observations[-1].text
-                observations = json.loads(msg)
-
-                grid = observations['floorAll']
-                for i, x in enumerate(grid):
-                    obs["grid"][i] = x == 'cobblestone' or x == "stone_brick"
-                obs["yaw"] = np.array([observations['Yaw']])                
-                break
-
-        return obs, False
+if __name__ == '__main__':
+    env = wrap_env()
+    # parallel_api_test(env, num_cycles=5)
+    model = SAC("MlpPolicy", env, verbose=0)
+    model.learn(total_timesteps=10000)
+    model.save("multi_sac_hideandseek")
