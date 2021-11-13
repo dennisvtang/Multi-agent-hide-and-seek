@@ -38,7 +38,6 @@ class SingleAgentEnv(gym.Env):
         reward = 0
         info = {}
         obs = np.zeros((2 * self.obs_size * self.obs_size + 1), dtype = np.float32)
-
         self.execute_malmo_action(action)
         world_state = self.agent_host.getWorldState()
         if not world_state.is_mission_running:
@@ -64,12 +63,16 @@ class SingleAgentEnv(gym.Env):
         return obs
     
     def execute_malmo_action(self, action):
+        print(self.agent_id)
         self.agent_host.sendCommand(f"move {action[0]}")
         self.agent_host.sendCommand(f"turn {action[1]}")
-        time.sleep(1)
+        time.sleep(0.2)
+    
+    def __repr__(self):
+        return self.agent_id
 
 
-class HideAndSeekMission(gym.Env):
+class HideAndSeekMission(DummyVecEnv):
 
     metadata = {'render.modes': ['human'], "name": "HideAndSeek"}
 
@@ -90,10 +93,19 @@ class HideAndSeekMission(gym.Env):
         ### Vector Env State ###
         self.is_vector_env = True
         self.num_envs = self.num_hiders + self.num_seekers
-        self.possible_agents = [f"hider_{x}"for x in range(self.num_hiders)] + [f"seeker_{x}" for x in range(self.num_seekers)]
+        self.possible_agents = [f"hider_{x}" for x in range(self.num_hiders)] + [f"seeker_{x}" for x in range(self.num_seekers)]
+        print("Agent ids", self.possible_agents)
         self.agent_envs = {key:SingleAgentEnv(key, self.obs_size) for key in self.possible_agents}
-        self.action_space = batch_space(self.agent_envs["hider_0"].observation_space, n = len(self.possible_agents))
-        self.observation_space = batch_space(Box(-360, 360, shape = (2 * self.obs_size * self.obs_size + 1,), dtype=np.float32), n = len(self.possible_agents))
+        envs = []
+        def create_factory_func(agent_env):
+            return lambda: agent_env
+        for key in self.possible_agents:
+            new_agent_env = self.agent_envs[key]
+            print("adding", new_agent_env.agent_id)
+            envs.append(create_factory_func(new_agent_env))
+        super().__init__(envs)
+        # self.action_space = batch_space(self.agent_envs["hider_0"].observation_space, n = len(self.possible_agents))
+        # self.observation_space = batch_space(Box(-360, 360, shape = (2 * self.obs_size * self.obs_size + 1,), dtype=np.float32), n = len(self.possible_agents))
 
         ### Malmo State ###
         self.malmo_agents = {key : self.agent_envs[key].agent_host for key in self.possible_agents}
@@ -103,30 +115,34 @@ class HideAndSeekMission(gym.Env):
         '''
         Resets the environment to a starting state.
         '''
-        self.agents = self.possible_agents[:]
         self.init_malmo()
-        observations = {agent : self.agent_envs[agent].reset() for agent in self.agents}
-        return observations
+        # self.agents = self.possible_agents[:]
+        # self.init_malmo()
+        # observations = np.array([self.agent_envs[agent].reset() for agent in self.agents])
+        # return observations
+        return super().reset()
     
-    def step(self, actions):
+    def step_wait(self):
         '''
         Receives a dictionary of actions keyed by the agent name.
         Returns the observation dictionary, reward dictionary, done dictionary, and info dictionary,
         where each dictionary is keyed by the agent.
         '''
 
-        rewards = {agent : 0 for agent in self.agents}
-        dones = {agent: False for agent in self.agents}
-        infos = {agent : {} for agent in self.agents}
-        observations = {agent : None for agent in self.agents}
+        # rewards = [0 for _ in range(self.num_envs)]
+        # dones = [False for _ in range(self.num_envs)]
+        # infos = [{} for _ in range(self.num_envs)]
+        # observations = np.array([self.agent_envs[agent].reset() for agent in self.agents])
 
-        for i, agent in enumerate(self.agents):        
-            curr_obs, curr_reward, done, info = self.agent_envs[agent].step(actions[i])
-            self.rewards[agent] = curr_reward
-            observations[agent] = curr_obs
-            dones[agent] = done
-            infos[agent] = info
-        return observations, rewards, dones, infos
+        # for i, agent in enumerate(self.agents):        
+        #     curr_obs, curr_reward, done, info = self.agent_envs[agent].step(actions[i])
+        #     rewards[i] = curr_reward
+        #     observations[i] = curr_obs
+        #     dones[i] = done
+        #     infos[i] = info
+        # print(rewards)
+        # return observations, rewards, dones, infos
+        return super().step_wait()
 
     def init_malmo(self):
         my_mission = MalmoPython.MissionSpec(
@@ -287,6 +303,6 @@ def wrap_env():
 if __name__ == '__main__':
     env = wrap_env()
     # parallel_api_test(env, num_cycles=5)
-    model = SAC("MlpPolicy", env, verbose=0)
+    model = A2C("MlpPolicy", env, verbose=1)
     model.learn(total_timesteps=10000)
     model.save("multi_sac_hideandseek")
