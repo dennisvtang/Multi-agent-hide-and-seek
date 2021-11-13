@@ -14,7 +14,6 @@ from gym.spaces import Box, Dict
 from gym.vector.utils import batch_space
 from stable_baselines3 import A2C, SAC
 from stable_baselines3.common.vec_env import DummyVecEnv
-import supersuit as ss
 
 from env import create_env
 from multi_agent_helper import safeStartMission, safeWaitForStart
