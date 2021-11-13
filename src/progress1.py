@@ -50,7 +50,7 @@ class SingleAgentEnv(gym.Env):
         obs = np.zeros((2 * self.obs_size * self.obs_size + 1), dtype = np.float32)
         while self.agent_host.getWorldState().is_mission_running:
             time.sleep(0.1)
-            world_state = self.agent_host.getWorldState(0)
+            world_state = self.agent_host.getWorldState()
             
             if world_state.number_of_observations_since_last_state > 0:
                 malmo_obs = json.loads(world_state.observations[-1].text)
@@ -248,7 +248,7 @@ class HideAndSeekMission(DummyVecEnv):
         # add quit condition
         # todo change quit conditions to have a proper time limit
         mission_string += f"""
-                    <ServerQuitFromTimeUp description="" timeLimitMs="1"/>
+                    <ServerQuitFromTimeUp description="" timeLimitMs="50000"/>
                     <ServerQuitWhenAnyAgentFinishes/>
                 </ServerHandlers>
             </ServerSection>"""
