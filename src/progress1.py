@@ -222,6 +222,18 @@ class HideAndSeekMission(DummyVecEnv):
             **kwargs,
         )
 
+        # generate positions for agents
+        agent_pos = []
+        for i in range(self.num_hiders + self.num_seekers):
+            while True:
+                x_pos = random.randint(0, arena_size - 1)
+                y_pos = random.randint(0, arena_size - 1)
+
+                # prevent agents from spawning in walls
+                if env_map[y_pos][x_pos] == 0:
+                    agent_pos.append((x_pos, y_pos))
+                    break
+
         mission_string = f""
 
         # add boiler plate stuff
@@ -259,7 +271,7 @@ class HideAndSeekMission(DummyVecEnv):
             mission_string += f"""<AgentSection mode="Survival">
                 <Name>{self.possible_agents[i]}</Name>
                 <AgentStart>
-                    <Placement x="{str(random.randint(0, arena_size))}" y="2" z="{str(random.randint(0, arena_size))}"/>
+                    <Placement x="{str(agent_pos[i][1])}" y="2" z="{str(agent_pos[i][0])}"/>
                 </AgentStart>
                 <AgentHandlers>
                     <RewardForCollectingItem>
