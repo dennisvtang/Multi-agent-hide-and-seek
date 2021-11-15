@@ -152,6 +152,8 @@ class HideAndSeekMission(DummyVecEnv):
         agent_hosts = self.malmo_agents
         for agent_id, agent in enumerate(agent_hosts.keys()):
             safeStartMission(agent_hosts[agent], my_mission, client_pool, MalmoPython.MissionRecordSpec(), agent_id, experimentID)
+            # give minecraft clients time to setup
+            time.sleep(2)
 
         safeWaitForStart(agent_hosts.values())
         time.sleep(1)
