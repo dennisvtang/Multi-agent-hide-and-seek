@@ -20,7 +20,7 @@ from multi_agent_helper import safeStartMission, safeWaitForStart
 
 class SingleAgentEnv(gym.Env):
 
-    def __init__(self, agent_id, obs_size):
+    def __init__(self, agent_id, obs_size, init_malmo_callback, max_steps=100):
         ### Env Parameters ###
         self.obs_size = obs_size
         self.agent_id = agent_id
@@ -29,8 +29,17 @@ class SingleAgentEnv(gym.Env):
 
         ### Malmo Parameters ###
         self.agent_host = MalmoPython.AgentHost()
+        self.init_malmo = init_malmo_callback
+
+        ### Agent State ###
+        self.max_steps = max_steps
+        self.episode_step = 0
     
     def reset(self):
+        print("agent reset called")
+        self.episode_step = 0
+        if not self.agent_host.getWorldState().is_mission_running:
+            self.init_malmo()
         return self.get_observation()
     
     def step(self, action):
@@ -40,6 +49,7 @@ class SingleAgentEnv(gym.Env):
         self.execute_malmo_action(action)
         world_state = self.agent_host.getWorldState()
         if not world_state.is_mission_running:
+            print("agent is done!")
             return obs, reward, True, info
         for r in world_state.rewards:
             reward += r.getValue()
@@ -50,8 +60,7 @@ class SingleAgentEnv(gym.Env):
         obs = np.zeros((2 * self.obs_size * self.obs_size + 1), dtype = np.float32)
         while self.agent_host.getWorldState().is_mission_running:
             time.sleep(0.1)
-            world_state = self.agent_host.getWorldState()
-            
+            world_state = self.agent_host.getWorldState()            
             if world_state.number_of_observations_since_last_state > 0:
                 malmo_obs = json.loads(world_state.observations[-1].text)
                 obs[0] = malmo_obs["Yaw"]
@@ -62,7 +71,6 @@ class SingleAgentEnv(gym.Env):
         return obs
     
     def execute_malmo_action(self, action):
-        print(self.agent_id)
         self.agent_host.sendCommand(f"move {action[0]}")
         self.agent_host.sendCommand(f"turn {action[1]}")
         time.sleep(0.2)
@@ -87,20 +95,19 @@ class HideAndSeekMission(DummyVecEnv):
         self.obs_size = 5
         self.num_hiders = 1
         assert self.num_hiders > 0, "hiders are mandatory"
-        self.num_seekers = 1        
+        self.num_seekers = 1
+        self.max_episode_steps = 300
 
         ### Vector Env State ###
         self.is_vector_env = True
         self.num_envs = self.num_hiders + self.num_seekers
         self.possible_agents = [f"hider_{x}" for x in range(self.num_hiders)] + [f"seeker_{x}" for x in range(self.num_seekers)]
-        print("Agent ids", self.possible_agents)
-        self.agent_envs = {key:SingleAgentEnv(key, self.obs_size) for key in self.possible_agents}
+        self.agent_envs = {key:SingleAgentEnv(key, self.obs_size, self.init_malmo) for key in self.possible_agents}
         envs = []
         def create_factory_func(agent_env):
             return lambda: agent_env
         for key in self.possible_agents:
             new_agent_env = self.agent_envs[key]
-            print("adding", new_agent_env.agent_id)
             envs.append(create_factory_func(new_agent_env))
         super().__init__(envs)
         # self.action_space = batch_space(self.agent_envs["hider_0"].observation_space, n = len(self.possible_agents))
@@ -114,33 +121,11 @@ class HideAndSeekMission(DummyVecEnv):
         '''
         Resets the environment to a starting state.
         '''
+        print("reset called")
         self.init_malmo()
-        # self.agents = self.possible_agents[:]
-        # self.init_malmo()
-        # observations = np.array([self.agent_envs[agent].reset() for agent in self.agents])
-        # return observations
         return super().reset()
     
     def step_wait(self):
-        '''
-        Receives a dictionary of actions keyed by the agent name.
-        Returns the observation dictionary, reward dictionary, done dictionary, and info dictionary,
-        where each dictionary is keyed by the agent.
-        '''
-
-        # rewards = [0 for _ in range(self.num_envs)]
-        # dones = [False for _ in range(self.num_envs)]
-        # infos = [{} for _ in range(self.num_envs)]
-        # observations = np.array([self.agent_envs[agent].reset() for agent in self.agents])
-
-        # for i, agent in enumerate(self.agents):        
-        #     curr_obs, curr_reward, done, info = self.agent_envs[agent].step(actions[i])
-        #     rewards[i] = curr_reward
-        #     observations[i] = curr_obs
-        #     dones[i] = done
-        #     infos[i] = info
-        # print(rewards)
-        # return observations, rewards, dones, infos
         return super().step_wait()
 
     def init_malmo(self):
@@ -260,7 +245,6 @@ class HideAndSeekMission(DummyVecEnv):
         # add quit condition
         # todo change quit conditions to have a proper time limit
         mission_string += f"""
-                    <ServerQuitFromTimeUp description="" timeLimitMs="50000"/>
                     <ServerQuitWhenAnyAgentFinishes/>
                 </ServerHandlers>
             </ServerSection>"""
@@ -286,6 +270,7 @@ class HideAndSeekMission(DummyVecEnv):
                         <max x="{str(int(self.obs_size/2))}" y="0" z="{str(int(self.obs_size/2))}"/>
                         </Grid>
                     </ObservationFromGrid>
+                    <AgentQuitFromReachingCommandQuota total=\" """+str(self.max_episode_steps)+""" \"/>
                 </AgentHandlers>
             </AgentSection>"""
 
