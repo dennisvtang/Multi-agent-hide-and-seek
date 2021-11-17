@@ -25,18 +25,25 @@ We evaluated the project by using a top down view through an observation agent t
 
 In our current iteration of the project, we utilized a simple reward system:
 
+<center>
 
-| Seeker Action  | Reward |
-| ------------- | ------------- |
-| Staring at sky  | - 1  |
-| Catching hider (cursor collides with hider)  | + 5  |
+| Seeker Action                               | Reward |
+|---------------------------------------------|--------|
+| Staring at sky                              | - 1    |
+| Catching hider (cursor collides with hider) | + 5    |
+
+</center>
 
 
-| Hider Action  | Reward |
-| ------------- | ------------- |
-| Staring at sky  | - 1  |
-| Getting caught (Seeker’s cursor collides with hider)  | - 5  |
 
+<center>
+
+| Seeker Action                               | Reward |
+|---------------------------------------------|--------|
+| Staring at sky                              | - 1    |
+| Catching hider (cursor collides with hider) | + 5    |
+
+</center>
 
 Using this reward policy of +5 or -5 for the respective agents, the hider was able to effectively learn to how to avoid getting caught as long as possible and the seeker was able to learn tactics to quickly search the entire arena for the hider. However, the hider agent was able to improve faster than the seeker agent and learned to place dirt blocks at the open door locations in order to block themselves off into a subsection of the arena so the seeker could not reach them. The seeker was provided a shovel that allowed them to break the dirt blocks, but they struggled to figure out to achieve that in order to reach the blocked off hider. 
 
