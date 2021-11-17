@@ -3,8 +3,7 @@ layout: default
 title:  Team
 ---
 
-# List of Team member:
-
+# Team members:
 
 ## Dennis Tang
 ***UCI Net ID***: dvtang1
