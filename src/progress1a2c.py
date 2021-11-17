@@ -20,33 +20,24 @@ from multi_agent_helper import safeStartMission, safeWaitForStart
 
 class SingleAgentEnv(gym.Env):
 
-    def __init__(self, agent_id, obs_size, init_malmo_callback, seeker_found_hider_callback, hider = True, max_steps=20):
+    def __init__(self, agent_id, obs_size, init_malmo_callback, max_steps=100):
         ### Env Parameters ###
         self.obs_size = obs_size
         self.agent_id = agent_id
-        self.hider = hider
-        self.action_space = Box(-1,1, shape = (4,), dtype=np.float32)
-        self.observation_space = Dict( {
-            "facing" : Box(-360, 360, shape = (2,), dtype=np.float32),
-            "grid" : Box(0, 2, shape = (2 * self.obs_size * self.obs_size,), dtype=np.float32)
-        })
+        self.action_space = Box(-1,1, shape = (2,), dtype=np.float32)
+        self.observation_space = Box(-360, 360, shape = (2 * self.obs_size * self.obs_size + 1,), dtype=np.float32)
 
         ### Malmo Parameters ###
         self.agent_host = MalmoPython.AgentHost()
         self.init_malmo = init_malmo_callback
-        self.seeker_found_hider = seeker_found_hider_callback
 
         ### Agent State ###
         self.max_steps = max_steps
         self.episode_step = 0
-        self.reward_given = False
-        self.staring_at_sky = False
     
     def reset(self):
         print("agent reset called")
-        if self.episode_step > 0 and self.hider:
-            print("attempting to end mission")
-            self.agent_host.sendCommand(f"quit")
+        self.episode_step = 0
         if not self.agent_host.getWorldState().is_mission_running:
             self.init_malmo()
         return self.get_observation()
@@ -54,81 +45,41 @@ class SingleAgentEnv(gym.Env):
     def step(self, action):
         reward = 0
         info = {}
-        obs = {
-            "facing" : np.zeros((2,), dtype=np.float32),
-            "grid" : np.zeros((2 * self.obs_size * self.obs_size), dtype = np.float32)
-        }
+        obs = np.zeros((2 * self.obs_size * self.obs_size + 1), dtype = np.float32)
         self.execute_malmo_action(action)
         world_state = self.agent_host.getWorldState()
-        self.episode_step += 1
         if not world_state.is_mission_running:
             print("agent is done!")
             return obs, reward, True, info
         for r in world_state.rewards:
             reward += r.getValue()
         obs = self.get_observation()
-        if self.staring_at_sky:
-            print('agent lost point for staring at sky')
-            reward -= 1
-            self.staring_at_sky = False
-        if self.seeker_found_hider() and self.reward_given == False:
-            if self.hider:
-                print("rewards applied to hider")
-                reward -= 5
-                self.seeker_found_hider(hidden=True)
-            else:
-                print("rewards applied to seeker")
-                reward += 5
-                self.reward_given = True
         return obs, reward, False, info
     
     def get_observation(self):
-        obs = {
-            "facing" : np.zeros((2,), dtype=np.float32),
-            "grid" : np.zeros((2 * self.obs_size * self.obs_size), dtype = np.float32)
-        }
+        obs = np.zeros((2 * self.obs_size * self.obs_size + 1), dtype = np.float32)
         while self.agent_host.getWorldState().is_mission_running:
-            world_state = self.agent_host.getWorldState()
+            time.sleep(0.1)
+            world_state = self.agent_host.getWorldState()            
             if world_state.number_of_observations_since_last_state > 0:
                 malmo_obs = json.loads(world_state.observations[-1].text)
-                if "LineOfSight" in malmo_obs:
-                    los = malmo_obs["LineOfSight"]
-                    if "hider" in los["type"] and not self.hider:
-                        print("seeker found hider! rewards to be applied")
-                        self.seeker_found_hider(spotted=True)
-                else:
-                    print('starting at sky...')
-                    self.staring_at_sky = True
-                obs["facing"][0] = malmo_obs["Yaw"]
-                obs["facing"][1] = malmo_obs["Pitch"]
+                obs[0] = malmo_obs["Yaw"]
                 grid = malmo_obs['floorAll']
                 for i, x in enumerate(grid):
-                    if x == 'cobblestone' or x == 'stone_brick':
-                        obs["grid"][i] = 1
-                    elif x == 'dirt':
-                        obs["grid"][i] = 2
+                    obs[i+1] = x == 'cobblestone' or x == "stone_brick"
                 break
         return obs
     
     def execute_malmo_action(self, action):
         self.agent_host.sendCommand(f"move {action[0]}")
         self.agent_host.sendCommand(f"turn {action[1]}")
-        self.agent_host.sendCommand(f"pitch {action[2]}")
-        if action[3] > 0:
-            if self.hider:
-                self.execute_malmo_action([0,0,0,0])
-                self.agent_host.sendCommand(f"use 1")
-            if not self.hider:
-                self.execute_malmo_action([0,0,0,0])
-                self.agent_host.sendCommand(f"attack 1")
-                time.sleep(0.2)
         time.sleep(0.2)
     
     def __repr__(self):
         return self.agent_id
 
 
-class HideAndSeekMission:
+class HideAndSeekMission(DummyVecEnv):
 
     metadata = {'render.modes': ['human'], "name": "HideAndSeek"}
 
@@ -141,44 +92,43 @@ class HideAndSeekMission:
         self.gen_num_stairs = 0
 
         ### Agent Parameters ###
-        self.obs_size = 7
+        self.obs_size = 5
         self.num_hiders = 1
         assert self.num_hiders > 0, "hiders are mandatory"
         self.num_seekers = 1
         self.max_episode_steps = 300
 
-        ### Multi-Model State ###
-        self.num_runs = 10
-        self.seeker_phase_duration = 40
-        self.hider_phase_duration = 40
-        self.target_model = SAC
-        self.possible_hiders = [f"hider_{x}" for x in range(self.num_hiders)]
-        self.possible_seekers = [f"seeker_{x}" for x in range(self.num_seekers)]
-        self.hider_agents = {key:SingleAgentEnv(key, self.obs_size, self.init_malmo, self.seeker_found_hider_check, hider = True) for key in self.possible_hiders}
-        self.seeker_agents = {key:SingleAgentEnv(key, self.obs_size, self.init_malmo, self.seeker_found_hider_check, hider = False) for key in self.possible_seekers}
-        try:
-            print("attempting to load hider...")
-            self.hider_model = self.target_model.load("sac_hider", self.hider_agents["hider_0"])
-        except:
-            print("could not find hider")
-            self.hider_model = self.target_model("MultiInputPolicy", self.hider_agents["hider_0"], learning_starts=10)
-        try:
-            print("attempting to load seeker...")
-            self.seeker_model = self.target_model.load("sac_seeker", self.seeker_agents["seeker_0"])
-        except:
-            print("could not find seeker")
-            self.seeker_model = self.target_model("MultiInputPolicy", self.seeker_agents["seeker_0"], learning_starts=10)
-        self.seeker_found_hider = False
+        ### Vector Env State ###
+        self.is_vector_env = True
+        self.num_envs = self.num_hiders + self.num_seekers
+        self.possible_agents = [f"hider_{x}" for x in range(self.num_hiders)] + [f"seeker_{x}" for x in range(self.num_seekers)]
+        self.agent_envs = {key:SingleAgentEnv(key, self.obs_size, self.init_malmo) for key in self.possible_agents}
+        envs = []
+        def create_factory_func(agent_env):
+            return lambda: agent_env
+        for key in self.possible_agents:
+            new_agent_env = self.agent_envs[key]
+            envs.append(create_factory_func(new_agent_env))
+        super().__init__(envs)
+        # self.action_space = batch_space(self.agent_envs["hider_0"].observation_space, n = len(self.possible_agents))
+        # self.observation_space = batch_space(Box(-360, 360, shape = (2 * self.obs_size * self.obs_size + 1,), dtype=np.float32), n = len(self.possible_agents))
 
         ### Malmo State ###
-        self.malmo_agents = { **{key : self.hider_agents[key].agent_host for key in self.possible_hiders}, **{key : self.seeker_agents[key].agent_host for key in self.possible_seekers}}
+        self.malmo_agents = {key : self.agent_envs[key].agent_host for key in self.possible_agents}
         self.malmo_agents["Observer"] = MalmoPython.AgentHost()
+    
+    def reset(self):
+        '''
+        Resets the environment to a starting state.
+        '''
+        print("reset called")
+        self.init_malmo()
+        return super().reset()
+    
+    def step_wait(self):
+        return super().step_wait()
 
     def init_malmo(self):
-        self.hider_agents["hider_0"].episode_step = 0
-        self.seeker_agents["seeker_0"].episode_step = 0
-        self.seeker_agents["seeker_0"].reward_given = False
-        self.seeker_found_hider = False
         my_mission = MalmoPython.MissionSpec(
             self.gen_mission_xml(
                 self.arena_size,
@@ -194,9 +144,6 @@ class HideAndSeekMission:
         my_mission.requestVideo(800, 500)
         my_mission.setViewpoint(1)
 
-        my_mission_record.setDestination("mission_viewpoint.tgz")
-        my_mission_record.recordMP4(MalmoPython.FrameType.VIDEO, 24, 2000000, False)
-
         client_pool = MalmoPython.ClientPool()
         for port in range(10000, 10000 + self.num_seekers + self.num_hiders + 1):
             client_pool.add(MalmoPython.ClientInfo('127.0.0.1', port))
@@ -208,27 +155,6 @@ class HideAndSeekMission:
 
         safeWaitForStart(agent_hosts.values())
         time.sleep(1)
-    
-    def learn(self):
-        self.init_malmo()
-        ct = 0
-        while ct < self.num_runs:
-            ct += 1
-            self.hider_model = self.hider_model.learn(self.hider_phase_duration)
-            self.hider_agents["hider_0"].execute_malmo_action([0,0,0,0])
-            
-            self.seeker_model = self.seeker_model.learn(self.seeker_phase_duration)
-            self.seeker_agents["seeker_0"].execute_malmo_action([0,0,0,0])
-        print("learn finished")
-        self.hider_model.save("sac_hider")
-        self.seeker_model.save("sac_seeker")
-    
-    def seeker_found_hider_check(self, spotted=False, hidden=False):
-        if hidden:
-            self.seeker_found_hider = False
-        if spotted:
-            self.seeker_found_hider = True
-        return self.seeker_found_hider
 
     def gen_mission_xml(self,
         arena_size: int,
@@ -323,46 +249,20 @@ class HideAndSeekMission:
                 </ServerHandlers>
             </ServerSection>"""
 
-        # set up hiders
-        for i in range(self.num_hiders):
+        # set up agents
+        for i in range(self.num_hiders + self.num_seekers):
             # randomize agent starting position
             mission_string += f"""<AgentSection mode="Survival">
-                <Name>{self.possible_hiders[i]}</Name>
+                <Name>{self.possible_agents[i]}</Name>
                 <AgentStart>
                     <Placement x="{str(agent_pos[i][1])}" y="2" z="{str(agent_pos[i][0])}"/>
-                    <Inventory>
-                        <InventoryItem slot="0" type="dirt" quantity="8"/>
-                    </Inventory>
                 </AgentStart>
                 <AgentHandlers>
-                    <ContinuousMovementCommands turnSpeedDegs="360"/>
-                    <MissionQuitCommands/>
-                    <ObservationFromFullStats/>                    
-                    <ObservationFromRay/>
-                    <ObservationFromGrid>
-                        <Grid name="floorAll">
-                        <min x="-{str(int(self.obs_size/2))}" y="-1" z="-{str(int(self.obs_size/2))}"/>
-                        <max x="{str(int(self.obs_size/2))}" y="0" z="{str(int(self.obs_size/2))}"/>
-                        </Grid>
-                    </ObservationFromGrid>
-                </AgentHandlers>
-            </AgentSection>"""
-        
-        #set up seekers
-        for i in range(self.num_seekers):
-            # randomize agent starting position
-            mission_string += f"""<AgentSection mode="Survival">
-                <Name>{self.possible_seekers[i]}</Name>
-                <AgentStart>
-                    <Placement x="{str(agent_pos[self.num_hiders + i][1])}" y="2" z="{str(agent_pos[self.num_hiders + i][0])}" pitch="90"/>
-                    <Inventory>
-                        <InventoryItem slot="0" type="iron_shovel"/>
-                    </Inventory>
-                </AgentStart>
-                <AgentHandlers>
-                    <ContinuousMovementCommands turnSpeedDegs="360"/>
-                    <MissionQuitCommands/>
+                    <RewardForCollectingItem>
+                        <Item type="apple" reward="1"/>
+                    </RewardForCollectingItem>
                     <ObservationFromFullStats/>
+                    <ContinuousMovementCommands turnSpeedDegs="360"/>
                     <ObservationFromRay/>
                     <ObservationFromGrid>
                         <Grid name="floorAll">
@@ -370,6 +270,7 @@ class HideAndSeekMission:
                         <max x="{str(int(self.obs_size/2))}" y="0" z="{str(int(self.obs_size/2))}"/>
                         </Grid>
                     </ObservationFromGrid>
+                    <AgentQuitFromReachingCommandQuota total=\" """+str(self.max_episode_steps)+""" \"/>
                 </AgentHandlers>
             </AgentSection>"""
 
@@ -388,9 +289,16 @@ class HideAndSeekMission:
 
         return mission_string
 
-if __name__ == '__main__':
+def wrap_env():
     env = HideAndSeekMission()
-    num_cycles = 10
-    for _ in range(num_cycles):
-        env.learn()
+    # env = ss.pad_action_space_v0(env)
+    # env = ss.pad_observations_v0(env)
+    #env = ss.gym_vec_env_v0(env, env.num_envs)
+    return env
+
+if __name__ == '__main__':
+    env = wrap_env()
     # parallel_api_test(env, num_cycles=5)
+    model = A2C("MlpPolicy", env, verbose=2)
+    model.learn(total_timesteps=500)
+    model.save("multi_sac_hideandseek")
