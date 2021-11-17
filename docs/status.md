@@ -5,7 +5,9 @@ title: Status report
 
 
 # Video Summary
-
+<p align="center">
+  <iframe width="560" height="315" src="https://www.youtube.com/watch?v=ytsXH7dT1Ls" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</p>
 
 # Project Summary
 Our goal is to create an emergent environment where one or more hiders use dirt blocks to hide themselves from one or more seekers in an enclosed arena, to which the seekers can use shovels to dig the dirt to find the hiders. The hiders go first and have a defined period of time to hide themselves in the arena. The seekers go second and have a defined period of time to point their cursor at a hider. 
