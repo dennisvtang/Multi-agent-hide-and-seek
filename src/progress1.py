@@ -216,9 +216,12 @@ class HideAndSeekMission(DummyVecEnv):
                 x_pos = random.randint(0, arena_size - 1)
                 y_pos = random.randint(0, arena_size - 1)
 
-                # prevent agents from spawning in walls
+                # prevent agents from spawning in walls or one another
                 if env_map[y_pos][x_pos] == 0:
                     agent_pos.append((x_pos, y_pos))
+
+                    # mark an agent's spawn
+                    env_map[y_pos][x_pos] = 9
                     break
 
         mission_string = f""
