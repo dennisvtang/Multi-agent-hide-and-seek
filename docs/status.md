@@ -18,23 +18,26 @@ We evaluated the project by using a top down view through an observation agent t
 
 In our current iteration of the project, we utilized a simple reward system:
 
-Seeker
-| Action  | Reward |
+
+| Seeker Action  | Reward |
 | ------------- | ------------- |
 | Staring at sky  | - 1  |
 | Catching hider (cursor collides with hider)  | + 5  |
 
-Hider
-| Action  | Reward |
+
+| Hider Action  | Reward |
 | ------------- | ------------- |
 | Staring at sky  | - 1  |
 | Getting caught (Seeker’s cursor collides with hider)  | - 5  |
 
-Using this reward policy of +5 or -5 for the respective agents, the hider agent learned to place dirt blocks at the open door locations in order to block themselves off into a subsection of the arena so the seeker could not reach them. The seeker was provided a shovel that allowed them to break the dirt blocks, but they struggled to figure out how to reach the blocked off hiders. 
 
-[img]
+Using this reward policy of +5 or -5 for the respective agents, the hider was able to effectively learn to how to avoid getting caught as long as possible and the seeker was able to learn tactics to quickly search the entire arena for the hider. However, the hider agent was able to improve faster than the seeker agent and learned to place dirt blocks at the open door locations in order to block themselves off into a subsection of the arena so the seeker could not reach them. The seeker was provided a shovel that allowed them to break the dirt blocks, but they struggled to figure out to achieve that in order to reach the blocked off hider. 
 
-The staring at the sky penalty was included after evaluating the agents' actions because we realized that we wanted to discourage the agents from observing unimportant areas outside of the mission space in order to streamline the learning process
+<p align="center">
+  <img src="./res/hider_blocked_off.png">
+</p>
+
+Lastly, after evaluating the reinforcement learning for both agents, the staring at the sky penalty was included because we realized that we wanted to discourage the agents from observing unimportant areas outside of the mission space in order to streamline the learning process.
 
 
 
