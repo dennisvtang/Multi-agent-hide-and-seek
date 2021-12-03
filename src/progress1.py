@@ -27,6 +27,7 @@ class SingleAgentEnv(gym.Env):
         self.hider = hider
         self.action_space = Box(-1,1, shape = (4,), dtype=np.float32)
         self.observation_space = Dict( {
+            "cursor" : Box(0, 1, shape = (3,), dtype = np.float32),
             "facing" : Box(-360, 360, shape = (2,), dtype=np.float32),
             "grid" : Box(0, 2, shape = (2 * self.obs_size * self.obs_size,), dtype=np.float32)
         })
@@ -68,7 +69,6 @@ class SingleAgentEnv(gym.Env):
             reward += r.getValue()
         obs = self.get_observation()
         if self.staring_at_sky:
-            print('agent lost point for staring at sky')
             reward -= 1
             self.staring_at_sky = False
         if self.seeker_found_hider() and self.reward_given == False:
@@ -84,6 +84,7 @@ class SingleAgentEnv(gym.Env):
     
     def get_observation(self):
         obs = {
+            "cursor" : np.zeros((3,), dtype=np.float32),
             "facing" : np.zeros((2,), dtype=np.float32),
             "grid" : np.zeros((2 * self.obs_size * self.obs_size), dtype = np.float32)
         }
@@ -96,8 +97,12 @@ class SingleAgentEnv(gym.Env):
                     if "hider" in los["type"] and not self.hider:
                         print("seeker found hider! rewards to be applied")
                         self.seeker_found_hider(spotted=True)
+                        obs["cursor"][2] = 1
+                    elif los["type"] in ("cobblestone", "stonebrick"):
+                        obs["cursor"][0] = 1
+                    elif los["type"] in ("dirt"):
+                        obs["cursor"][1] = 1
                 else:
-                    print('starting at sky...')
                     self.staring_at_sky = True
                 obs["facing"][0] = malmo_obs["Yaw"]
                 obs["facing"][1] = malmo_obs["Pitch"]
@@ -107,6 +112,7 @@ class SingleAgentEnv(gym.Env):
                         obs["grid"][i] = 1
                     elif x == 'dirt':
                         obs["grid"][i] = 2
+                obs["cursor"]
                 break
         return obs
     
