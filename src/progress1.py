@@ -189,9 +189,13 @@ class HideAndSeekMission:
                     "blocks_outside": True,
                     "stairs_inside": False,
                     "stairs_outside": True,
-                }, 0, 0), True)
+                }, 
+                0, 
+                0, 
+                2
+            ), 
+            True)
         my_mission_record = MalmoPython.MissionRecordSpec()
-        my_mission.requestVideo(800, 500)
         my_mission.setViewpoint(1)
 
         my_mission_record.setDestination("mission_viewpoint.tgz")
@@ -237,6 +241,7 @@ class HideAndSeekMission:
         item_gen,
         num_blocks: int,
         num_stairs: int,
+        min_agent_spawn_dist: int,
         **kwargs,
     ):
         """
@@ -263,6 +268,8 @@ class HideAndSeekMission:
                 Specify the number of blocks that should be generated.
             num_stairs (int):
                 Specify the number of stairs that should be generated.
+            min_agent_spawn_dist (int):
+                Specify the minimum distance agents have to spawn from one another
             **kwargs:
                 Arbitrary keyword arguments. Each environment type has additional settings that can be tweaked. Refer to those individual functions to find out more.
 
@@ -271,6 +278,11 @@ class HideAndSeekMission:
         """
 
         # generate environment and map for environment (doesn't include outer walls)
+        # empty = 0
+        # walls = 1
+        # blocks = 2
+        # stairs = 3
+        # agents = 4
         env, env_map = create_env(
             arena_size,
             is_closed_arena,
@@ -283,15 +295,38 @@ class HideAndSeekMission:
 
         # generate positions for agents
         agent_pos = []
+        # todo consider case where this loop gets stuck because there isn't a solution
         for i in range(self.num_hiders + self.num_seekers):
             while True:
                 x_pos = random.randint(0, arena_size - 1)
                 y_pos = random.randint(0, arena_size - 1)
 
                 # prevent agents from spawning in walls
-                if env_map[y_pos][x_pos] == 0:
-                    agent_pos.append((x_pos, y_pos))
-                    break
+                if env_map[y_pos][x_pos] == 1:
+                    continue
+                
+                # prevent agents from spawning too close to one another
+                adjacent_spots = []
+
+                # generate all spaces around potential spawn point, up to min_agent_spawn_dist inclusive
+                for row_index in range(-(min_agent_spawn_dist), min_agent_spawn_dist + 1):
+                    for col_index in range(-(min_agent_spawn_dist), min_agent_spawn_dist + 1):
+                        # only consider VALID spots
+                        if 0 <= (y_pos + col_index) < len(env_map) and 0 <= (x_pos + row_index) < len(env_map[0]):
+                            adjacent_spots.append((y_pos + col_index, x_pos + row_index))
+
+                # another agent was found within min_agent_spawn_dist
+                if any([True for i in adjacent_spots if env_map[i[0]][i[1]] == 4]):
+                    print("another agent was found within min_agent_spawn_dist")
+                    env_map[y_pos][x_pos] = 4
+                    env_map[y_pos][x_pos] = 0
+                    input()
+                    continue
+                
+                # valid position for agent
+                agent_pos.append((x_pos, y_pos))
+                env_map[y_pos][x_pos] = 4
+                break
 
         mission_string = f""
 
