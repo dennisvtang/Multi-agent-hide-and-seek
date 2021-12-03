@@ -295,9 +295,20 @@ class HideAndSeekMission:
 
         # generate positions for agents
         agent_pos = []
-        # todo consider case where this loop gets stuck because there isn't a solution
-        for i in range(self.num_hiders + self.num_seekers):
+        attempt_counter = 0
+        max_attempts = 5
+        while len(agent_pos) != self.num_hiders + self.num_seekers:
             while True:
+                # reset all generated agent positions to prevent situations where in initial generated 
+                # agent positions prevents generation of the remaining agents
+                attempt_counter += 1
+                if attempt_counter == max_attempts:
+                    for pos in agent_pos:
+                        env_map[pos[1]][pos[0]] = 0
+                    agent_pos = []
+
+                    continue
+
                 x_pos = random.randint(0, arena_size - 1)
                 y_pos = random.randint(0, arena_size - 1)
 
@@ -315,17 +326,14 @@ class HideAndSeekMission:
                         if 0 <= (y_pos + col_index) < len(env_map) and 0 <= (x_pos + row_index) < len(env_map[0]):
                             adjacent_spots.append((y_pos + col_index, x_pos + row_index))
 
-                # another agent was found within min_agent_spawn_dist
+                # an agent was found within min_agent_spawn_dist
                 if any([True for i in adjacent_spots if env_map[i[0]][i[1]] == 4]):
-                    print("another agent was found within min_agent_spawn_dist")
-                    env_map[y_pos][x_pos] = 4
-                    env_map[y_pos][x_pos] = 0
-                    input()
                     continue
                 
                 # valid position for agent
                 agent_pos.append((x_pos, y_pos))
                 env_map[y_pos][x_pos] = 4
+                attempt_counter = 0
                 break
 
         mission_string = f""
