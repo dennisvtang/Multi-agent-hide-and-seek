@@ -141,7 +141,12 @@ def gen_quadrant_env(
                 f"Requested number of items to generate is larger than the space available in the selected area"
             )
 
-    # 2D map of area agents can walk around@
+    # 2D map of area agents can walk around
+    # empty = 0
+    # walls = 1
+    # blocks = 2
+    # stairs = 3
+    # agents = 4
     play_arena = [[0 for _ in range(arena_size)] for _ in range(arena_size)]
 
     # generate quadrant room
