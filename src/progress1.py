@@ -20,7 +20,7 @@ from multi_agent_helper import safeStartMission, safeWaitForStart
 
 class SingleAgentEnv(gym.Env):
 
-    def __init__(self, agent_id, obs_size, init_malmo_callback, seeker_found_hider_callback, hider = True, max_steps=20):
+    def __init__(self, agent_id, obs_size, init_malmo_callback, seeker_found_hider_callback, hider = True, max_steps=40):
         ### Env Parameters ###
         self.obs_size = obs_size
         self.agent_id = agent_id
@@ -42,9 +42,11 @@ class SingleAgentEnv(gym.Env):
         self.episode_step = 0
         self.reward_given = False
         self.staring_at_sky = False
+        self.explored_cells = set()
+        self.reward_explore = False
     
     def reset(self):
-        print("agent reset called")
+        self.explored_cells = set()      
         if self.episode_step > 0 and self.hider:
             print("attempting to end mission")
             self.agent_host.sendCommand(f"quit")
@@ -71,14 +73,18 @@ class SingleAgentEnv(gym.Env):
         if self.staring_at_sky:
             reward -= 1
             self.staring_at_sky = False
+        if not self.hider and self.reward_explore:
+            reward += 1
+            self.reward_explore = False
+            print("reward added for exploring new cell")
         if self.seeker_found_hider() and self.reward_given == False:
             if self.hider:
                 print("rewards applied to hider")
-                reward -= 5
+                reward -= 50
                 self.seeker_found_hider(hidden=True)
             else:
                 print("rewards applied to seeker")
-                reward += 5
+                reward += 100
                 self.reward_given = True
         return obs, reward, False, info
     
@@ -112,7 +118,12 @@ class SingleAgentEnv(gym.Env):
                         obs["grid"][i] = 1
                     elif x == 'dirt':
                         obs["grid"][i] = 2
-                obs["cursor"]
+                
+                if not self.hider:
+                    loc = (int(malmo_obs["XPos"]), int(malmo_obs["YPos"]))
+                    if loc not in self.explored_cells:
+                        self.reward_explore = True
+                        self.explored_cells.add(loc)
                 break
         return obs
     
@@ -213,8 +224,14 @@ class HideAndSeekMission:
 
         experimentID = str(uuid.uuid4())
         agent_hosts = self.malmo_agents
+
         for agent_id, agent in enumerate(agent_hosts.keys()):
+            agent_hosts[agent].sendCommand("quit")
+
+        for agent_id, agent in enumerate(agent_hosts.keys()):
+            time.sleep(1)
             safeStartMission(agent_hosts[agent], my_mission, client_pool, MalmoPython.MissionRecordSpec(), agent_id, experimentID)
+            time.sleep(1)
 
         safeWaitForStart(agent_hosts.values())
         time.sleep(1)
@@ -439,7 +456,7 @@ class HideAndSeekMission:
 
 if __name__ == '__main__':
     env = HideAndSeekMission()
-    num_cycles = 10
+    num_cycles = 5000
     for _ in range(num_cycles):
         env.learn()
     # parallel_api_test(env, num_cycles=5)
