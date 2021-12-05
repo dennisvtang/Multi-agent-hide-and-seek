@@ -304,7 +304,7 @@ class HideAndSeekMission:
         # empty = 0
         # walls = 1
         # blocks = 2
-        # stairs = 3
+        # stairs = 3shoul
         # agents = 4
         env, env_map = create_env(
             arena_size,
@@ -456,7 +456,7 @@ class HideAndSeekMission:
 
 if __name__ == '__main__':
     env = HideAndSeekMission()
-    num_cycles = 5000
+    num_cycles = 500
     for _ in range(num_cycles):
         env.learn()
     # parallel_api_test(env, num_cycles=5)
