@@ -58,6 +58,7 @@ class SingleAgentEnv(gym.Env):
         reward = 0
         info = {}
         obs = {
+            "cursor" : np.zeros((3,), dtype=np.float32),
             "facing" : np.zeros((2,), dtype=np.float32),
             "grid" : np.zeros((2 * self.obs_size * self.obs_size), dtype = np.float32)
         }
