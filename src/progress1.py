@@ -305,7 +305,7 @@ class HideAndSeekMission:
         # empty = 0
         # walls = 1
         # blocks = 2
-        # stairs = 3shoul
+        # stairs = 3
         # agents = 4
         env, env_map = create_env(
             arena_size,
