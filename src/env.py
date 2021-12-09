@@ -45,6 +45,20 @@ def gen_quadrant_env(
     """
 
     quadrant_env = ""
+    
+    # check if map has been provided
+    if "play_arena" in kwargs:
+        play_arena = kwargs["play_arena"]
+
+        # place blocks based on 2D map
+        for row_index in range(len(play_arena)):
+            for col_index in range(len(play_arena)):
+                if play_arena[row_index][col_index] == 1:
+                    quadrant_env += f"""
+                        <DrawBlock x='{col_index}'  y='{2}' z='{row_index}' type='cobblestone'/>
+                        <DrawBlock x='{col_index}'  y='{3}' z='{row_index}' type='cobblestone'/>"""
+        
+        return (quadrant_env, play_arena)
 
     # determine size of quadrant room
     if "quadrant_size" in kwargs:
@@ -521,6 +535,9 @@ def gen_quadrant_env(
                     <DrawItem x="{stair_index[1]}" y="2" z="{stair_index[0]}" type="oak_stairs"/>"""
 
             stair_counter += 1
+
+    for i in play_arena:
+        print(i)
 
     return (quadrant_env, play_arena)
 
