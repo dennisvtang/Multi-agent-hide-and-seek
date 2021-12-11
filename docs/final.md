@@ -47,7 +47,7 @@ In conclusion, although some minor improvements were found with the seeker, we d
 # References
 Baker, Bowen, et al. “[1909.07528] Emergent Tool Use From Multi-Agent Autocurricula.” ArXiv.Org, arXiv, 11 Feb. 2020, https://arxiv.org/abs/1909.07528. <br/><br/>
 
----. “Emergent Tool Use from Multi-Agent Interaction.” OpenAI, OpenAI, 17 Sept. 2019, https://openai.com/blog/emergent-tool-use/. <br/><br/>
+“Emergent Tool Use from Multi-Agent Interaction.” OpenAI, OpenAI, 17 Sept. 2019, https://openai.com/blog/emergent-tool-use/. <br/><br/>
 
 “Stable-Baselines3 Docs - Reliable Reinforcement Learning Implementations — Stable Baselines3 1.3.1a6 Documentation.” Stable-Baselines3 Docs - Reliable Reinforcement Learning Implementations — Stable Baselines3 1.3.1a6 Documentation, Read the Docs, 2021, https://stable-baselines3.readthedocs.io/en/master/. <br/><br/>
  
