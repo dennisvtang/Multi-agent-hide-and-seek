@@ -536,9 +536,6 @@ def gen_quadrant_env(
 
             stair_counter += 1
 
-    for i in play_arena:
-        print(i)
-
     return (quadrant_env, play_arena)
 
 
