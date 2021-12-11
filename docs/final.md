@@ -5,7 +5,9 @@ title: Final report
 
 
 # Video
-
+<p align="center">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/SwRPLrt1Y5A" frameborder="0" allow="accelerometer; autoplay;clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</p>
 
 # Project Summary
 The main objective of our project is to create a multi-agent Minecraft environment that encourages emergent, competitive behavior between two teams of agents: hiders and seekers. The hiders would be given 20 seconds to position themselves and place dirt blocks to avoid detection from seekers. The seekers would be given 20 seconds to detect the hiders by exploring the arena and digging up dirt blocks with an iron shovel. Detection is defined specifically as an event handler that fires when a ray casted from the center of an agent's viewport intersects with another agent's model. Training is done mainly through reinforcement learning self-play. <br/> <br/>
